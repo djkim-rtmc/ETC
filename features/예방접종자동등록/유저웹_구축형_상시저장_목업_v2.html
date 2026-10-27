@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>구축형 유저웹 — 상시저장 버전 목업 (v2)</title>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-soft: #eff6ff;
+      --pink: #ec4899;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --bg: #f3f4f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header.page-head {
+      position: sticky; top: 0; z-index: 20;
+      background: #fff; border-bottom: 1px solid var(--line);
+      padding: 14px 20px;
+    }
+    header.page-head h1 { margin: 0; font-size: 16px; }
+    header.page-head p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .nav button {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 6px 12px; font-size: 12px; cursor: pointer;
+    }
+    .nav button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .stage {
+      display: flex; gap: 24px; padding: 24px; overflow-x: auto;
+      align-items: flex-start;
+    }
+    .phone-wrap { flex: 0 0 auto; width: 320px; }
+    .phone-label {
+      font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--blue-dark);
+    }
+    .phone {
+      width: 320px; min-height: 640px; background: #fff;
+      border: 1px solid #d1d5db; border-radius: 24px; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+      display: flex; flex-direction: column;
+    }
+    .app-bar {
+      height: 52px; display: flex; align-items: center; justify-content: center;
+      position: relative; border-bottom: 1px solid var(--line);
+      font-weight: 700; font-size: 15px; color: var(--blue);
+    }
+    .app-bar .back, .app-bar .menu {
+      position: absolute; top: 0; bottom: 0; width: 48px;
+      display: flex; align-items: center; justify-content: center;
+      color: #374151; font-size: 18px;
+    }
+    .app-bar .back { left: 0; }
+    .app-bar .menu { right: 0; }
+    .content { padding: 16px; flex: 1; overflow-y: auto; }
+    .content.with-bottom-bar { padding-bottom: 88px; }
+    .hero-title { font-size: 18px; font-weight: 800; line-height: 1.35; margin: 8px 0 6px; }
+    .sub { font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 16px; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; height: 48px; border-radius: 12px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn + .btn { margin-top: 10px; }
+    .bottom-actions {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+    .bottom-actions .btn { margin-top: 0; font-size: 14px; }
+    .btn-kakao { background: #fee500; color: #191600; }
+    .btn-naver { background: #03c75a; color: #fff; }
+    .btn-outline { background: #fff; border: 1px solid #d1d5db; color: #111; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-ghost { background: #fff; border: 1px solid var(--blue); color: var(--blue); }
+    .divider {
+      display: flex; align-items: center; gap: 10px; margin: 16px 0;
+      color: #9ca3af; font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ""; flex: 1; height: 1px; background: var(--line);
+    }
+    .card {
+      border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fff;
+    }
+    .card.selectable { cursor: pointer; }
+    .card.selectable:hover { border-color: var(--blue); background: var(--blue-soft); }
+    .card + .card { margin-top: 10px; }
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choice {
+      border: 1.5px solid var(--line); border-radius: 14px; padding: 18px 12px; text-align: center;
+      font-weight: 700; cursor: pointer; background: #fff;
+    }
+    .choice.compact { padding: 10px 12px; font-size: 14px; }
+    .choice.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+    .choice small { display: block; margin-top: 6px; font-weight: 500; color: var(--muted); font-size: 11px; }
+    label.field { display: block; font-size: 12px; font-weight: 600; margin: 12px 0 6px; }
+    input, select {
+      width: 100%; height: 44px; border: 1px solid #d1d5db; border-radius: 10px;
+      padding: 0 12px; font-size: 14px;
+    }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .seg {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;
+    }
+    .seg button {
+      height: 36px; border-radius: 8px; border: 1px solid var(--line);
+      background: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .seg button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .badge {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+      background: var(--blue-soft); color: var(--blue); font-weight: 700;
+    }
+    .badge.pink { background: #fce7f3; color: #db2777; }
+    .badge.green { background: #ecfdf5; color: #059669; }
+    .qr-box {
+      border: 2px solid var(--blue); border-radius: 16px; padding: 20px; text-align: center;
+    }
+    .qr-fake {
+      width: 180px; height: 180px; margin: 0 auto 12px;
+      background:
+        linear-gradient(90deg, #111 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(#111 25%, transparent 25%) 0 0 / 12px 12px,
+        #fff;
+      border: 1px solid #111;
+    }
+    .note {
+      margin-top: 10px; padding: 10px 12px; background: #fff7ed; border-radius: 10px;
+      font-size: 11px; color: #9a3412; line-height: 1.4;
+    }
+    .info {
+      margin-bottom: 14px; padding: 10px 12px; background: var(--blue-soft);
+      border: 1px solid #bfdbfe; border-radius: 10px;
+      font-size: 11px; color: #1e3a8a; line-height: 1.45;
+    }
+    .family-item { display: flex; align-items: center; gap: 12px; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; color: #6b7280;
+    }
+    .avatar.add {
+      border: 1.5px dashed var(--blue); background: var(--blue-soft); color: var(--blue); font-size: 20px;
+    }
+    .check-row {
+      display: flex; gap: 8px; align-items: flex-start;
+      font-size: 12px; line-height: 1.45; margin: 10px 0;
+      color: #374151;
+    }
+    .check-row input { width: 16px; height: 16px; margin-top: 2px; flex: 0 0 auto; }
+    .check-row .grow { flex: 1; }
+    .link-view {
+      flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--blue);
+      text-decoration: underline; cursor: pointer; white-space: nowrap; margin-top: 1px;
+    }
+    .doc-panel {
+      display: none; margin-top: 8px; padding: 12px; border: 1px solid var(--line);
+      border-radius: 10px; background: #f9fafb; font-size: 11px; color: #4b5563; line-height: 1.5;
+      max-height: 160px; overflow-y: auto;
+    }
+    .doc-panel.show { display: block; }
+    .doc-panel strong { color: #111827; }
+    .footer-safe { margin-top: 20px; text-align: center; font-size: 11px; color: var(--blue); }
+    .hidden-block { display: none; }
+    .hidden-block.show { display: block; }
+    .legend {
+      max-width: 980px; margin: 0 auto 8px; padding: 0 24px 16px; font-size: 13px; color: var(--muted);
+    }
+    .ver-tag {
+      display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+      background: #ecfdf5; color: #047857; font-size: 11px; font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <h1>구축형 유저웹 — 상시저장 버전 목업 <span class="ver-tag">v2</span></h1>
+    <p>
+      SNS/PASS 인증 후 주민번호·주소를 수집해 <strong>보건소 공공클라우드 DB에 암호화 저장</strong>하는 버전입니다.
+      기존 접종당일-임시입력 목업(v1)은 수정하지 않았습니다. ·
+      <a href="유저웹_구축형_추가화면_목업.html">v1 목업 보기</a>
+      · <a href="Vd-IMS_구축형_추가화면_목업.html">Vd-IMS 목업</a>
+    </p>
+    <div class="nav" id="nav"></div>
+  </header>
+  <p class="legend">
+    처리자: 보건소 · 저장: 보건소 공공클라우드(암호화) · 회사(RTMC): 수탁·운영.
+  </p>
+
+  <div class="stage">
+    <!-- V2-01 -->
+    <div class="phone-wrap" data-id="V2-01">
+      <div class="phone-label">V2-01 로그인 (기존 유지)</div>
+      <div class="phone">
+        <div class="app-bar">안심예방접종 통합서비스</div>
+        <div class="content" style="display:flex;flex-direction:column;justify-content:center;">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="font-size:40px;line-height:1;">🦆</div>
+            <div class="hero-title" style="text-align:center;">안심예방접종 통합서비스</div>
+            <div class="sub" style="text-align:center;">내가 맞은 백신, 내가 확인해요!</div>
+          </div>
+          <button class="btn btn-kakao" onclick="go('V2-01A')">카카오로 시작하기</button>
+          <button class="btn btn-naver" onclick="go('V2-01A')">네이버로 시작하기</button>
+          <div class="divider">또는</div>
+          <button class="btn btn-outline" onclick="go('V2-01A')">회원 로그인 / 회원가입</button>
+          <div class="hint" style="text-align:center;margin-top:10px;">일반 회원가입 시 PASS 본인인증을 진행해요.</div>
+          <div class="footer-safe">안전한 서비스 이용을 위해 보안 접속 중이에요.</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- V2-01A 약관동의 -->
+    <div class="phone-wrap" data-id="V2-01A">
+      <div class="phone-label">V2-01A 약관동의 (신규) — 로그인 다음</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>약관동의<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">안심예방접종통합서비스를<br/>이용하고 싶으시다면<br/><span style="color:var(--blue)">약관에 동의</span>해 주세요!</div>
+
+          <div class="card selectable" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" id="agreeAll" />
+              <span class="grow" style="font-weight:700;">전체동의</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" class="agree-req" checked />
+              <span class="grow">[필수] 서비스 이용약관</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" class="agree-req" checked />
+              <span class="grow">[필수] 개인정보 수집 이용동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;border-color:#bfdbfe;background:var(--blue-soft);">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" class="agree-req" checked />
+              <span class="grow">[필수] 고유식별정보 수집·이용 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" class="agree-req" checked />
+              <span class="grow">[필수] 개인정보 제3자 제공 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" class="agree-req" checked />
+              <span class="grow">[필수] 민감정보 수집 · 이용 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row" style="margin:0;align-items:center;">
+              <input type="checkbox" />
+              <span class="grow">[선택] 마케팅 수신 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <span class="link-view" style="font-weight:600;">개인정보처리방침</span>
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary" onclick="go('V2-02')">다음</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2-02 회원가입 개인정보 -->
+    <div class="phone-wrap" data-id="V2-02">
+      <div class="phone-label">V2-02 회원가입 — 개인정보 입력 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>회원가입<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">본인 정보를<br/>등록해 주세요</div>
+          <p class="sub">질병관리청 예방접종 등록을 위해 필수 정보를 입력해 주세요.</p>
+
+          <div class="info">
+            입력하신 정보는 강남구 보건소가 수집 보관하며, 예방접종 등록 외 목적으로 사용하지 않아요.
+          </div>
+
+          <label class="field">이름 *</label>
+          <input value="김대중" readonly style="background:#f9fafb;" />
+
+          <label class="field">내/외국인 선택 *</label>
+          <div class="seg" id="idTypeSelf" style="grid-template-columns: 1fr 1fr;">
+            <button type="button" class="on" data-t="13">내국인</button>
+            <button type="button" data-t="f">외국인</button>
+          </div>
+
+          <label class="field" id="selfIdLabel">주민등록번호 *</label>
+          <input id="selfIdInput" placeholder="000000-0000000" />
+          <div class="hint" id="selfIdHint">주민등록번호 13자리를 입력해 주세요.</div>
+
+          <label class="field">주소 *</label>
+          <input placeholder="도로명 주소 검색" />
+          <label class="field">상세주소 *</label>
+          <input placeholder="상세주소 입력" />
+          <label class="field">우편번호 *</label>
+          <input readonly style="background:#f9fafb;" placeholder="자동 입력" />
+
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary" onclick="go('V2-03')">저장하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2-03 저장 완료 / 홈 진입 -->
+    <div class="phone-wrap" data-id="V2-03">
+      <div class="phone-label">V2-03 등록 완료</div>
+      <div class="phone">
+        <div class="app-bar">안심예방접종 통합서비스<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">정보가 안전하게<br/>저장됐어요</div>
+          <p class="sub">접종 당일에는 별도 주민번호 입력 없이 접종 QR을 발급할 수 있어요.</p>
+          <div class="card" style="border-color:#bfdbfe;background:var(--blue-soft);">
+            <div style="font-weight:700;color:var(--blue-dark);">김대중 <span class="badge">본인</span></div>
+            <div class="hint" style="margin:6px 0 0;color:#1e3a8a;">820826-1******</div>
+          </div>
+          <div class="card selectable" style="margin-top:12px;border-style:dashed;border-color:var(--blue);" onclick="go('V2-05')">
+            <div class="family-item">
+              <div class="avatar add">+</div>
+              <div>
+                <div style="font-weight:700;color:var(--blue);">가족 추가</div>
+                <div class="hint" style="margin:0;">새로운 가족을 추가할 수 있어요</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary">홈으로</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2-04 가족 목록 -->
+    <div class="phone-wrap" data-id="V2-04">
+      <div class="phone-label">V2-04 우리 가족 (기존+확장)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>우리 가족<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">우리 가족 정보를<br/>관리해요</div>
+          <p class="sub">가족 정보를 미리 등록해 놓으면 접종 당일 빠른 예방접종이 가능해요</p>
+
+          <div class="card">
+            <div class="family-item">
+              <div class="avatar">대중</div>
+              <div>
+                <div style="font-weight:700;">김대중 <span class="badge">본인</span></div>
+                <div class="hint" style="margin:0;">1982.08.26</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="family-item">
+              <div class="avatar">하율</div>
+              <div>
+                <div style="font-weight:700;">하율 <span class="badge pink">여자</span></div>
+                <div class="hint" style="margin:0;">2023.03.15 · 관계: 자</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card selectable" style="border-style:dashed;border-color:var(--blue);" onclick="go('V2-05')">
+            <div class="family-item">
+              <div class="avatar add">+</div>
+              <div>
+                <div style="font-weight:700;color:var(--blue);">가족 추가</div>
+                <div class="hint" style="margin:0;">새로운 가족을 추가할 수 있어요</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary">홈으로</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2-05 가족 추가 -->
+    <div class="phone-wrap" data-id="V2-05">
+      <div class="phone-label">V2-05 가족 추가 — 개인정보 저장 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>가족 추가<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">새 가족 정보를<br/>입력해 주세요</div>
+          <p class="sub">질병관리청 예방접종 등록을 위해 필수 정보를 입력해 주세요.</p>
+
+          <div class="info">
+            입력하신 정보는 강남구 보건소가 수집 보관하며, 예방접종 등록 외 목적으로 사용하지 않아요.
+          </div>
+
+          <label class="field">이름 *</label>
+          <input placeholder="이름" />
+
+          <label class="field">주민등록번호 / 신생아 *</label>
+          <div class="seg" id="idTypeFamily">
+            <button type="button" class="on" data-t="13">주민등록번호</button>
+            <button type="button" data-t="7">신생아</button>
+          </div>
+          <input id="familyIdInput" style="margin-top:8px;" placeholder="000000-0000000" />
+          <div class="hint" id="familyIdHint">주민등록번호 13자리를 입력해 주세요.</div>
+
+          <div id="familyGuardian" class="hidden-block">
+            <label class="field">보호자 주민등록번호 *</label>
+            <input placeholder="보호자 주민등록번호" />
+          </div>
+
+          <label class="field">성별 *</label>
+          <div class="choice-row">
+            <div class="choice compact">남자</div>
+            <div class="choice compact active">여자</div>
+          </div>
+
+          <div class="choice-row" style="margin-top:4px;align-items:start;">
+            <div>
+              <label class="field">관계 *</label>
+              <select>
+                <option>자</option>
+                <option>부</option>
+                <option>모</option>
+                <option>기타</option>
+              </select>
+            </div>
+            <div>
+              <label class="field">쌍둥이 구분 *</label>
+              <select>
+                <option>해당없음 (1)</option>
+                <option>첫째 (1)</option>
+                <option>둘째 (2)</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="field">주소 *</label>
+          <input placeholder="도로명 주소 검색" />
+          <label class="field">상세주소 *</label>
+          <input placeholder="상세주소" />
+          <label class="field">우편번호 *</label>
+          <input readonly style="background:#f9fafb;" placeholder="자동 입력" />
+
+          <div class="check-row">
+            <input type="checkbox" checked />
+            <span class="grow">[필수] 법정대리인으로서 자녀(가족) 고유식별정보 수집 이용 동의</span>
+            <span class="link-view" onclick="toggleDoc('guardianDoc')">보기</span>
+          </div>
+          <div id="guardianDoc" class="doc-panel">
+            <strong>법정대리인 고유식별정보 수집·이용 동의서 (초안)</strong><br/><br/>
+            1. 수집 항목: 자녀(가족) 성명, 주민등록번호(또는 신생아 7자리·외국인등록번호), 주소, 관계, 쌍둥이 구분<br/>
+            2. 수집 목적: 질병관리청 예방접종 등록 및 접종 이력 관리<br/>
+            3. 보유·이용 기간: 회원 탈퇴 또는 목적 달성 시까지 (관련 법령에 따른 보관 의무가 있는 경우 해당 기간)<br/>
+            4. 처리자: 강남구 보건소<br/>
+            5. 동의를 거부할 수 있으나, 거부 시 해당 가족 예방접종 등록 서비스 이용이 제한될 수 있어요.<br/><br/>
+            ※ 본 문서는 목업용 초안이며, 법무 검토 후 확정합니다.
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary" onclick="go('V2-04')">저장하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ids = ["V2-01","V2-01A","V2-02","V2-03","V2-04","V2-05"];
+    const nav = document.getElementById("nav");
+    ids.forEach((id, i) => {
+      const b = document.createElement("button");
+      b.textContent = id;
+      b.onclick = () => go(id);
+      if (i === 0) b.classList.add("active");
+      nav.appendChild(b);
+    });
+
+    function go(id) {
+      document.querySelectorAll(".phone-wrap").forEach(el => {
+        el.style.outline = el.dataset.id === id ? "3px solid #2563eb" : "none";
+        el.style.outlineOffset = "4px";
+      });
+      document.querySelectorAll("#nav button").forEach(b => {
+        b.classList.toggle("active", b.textContent === id);
+      });
+      const target = document.querySelector(`[data-id="${id}"]`);
+      if (target) target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+
+    const seg = document.getElementById("idTypeFamily");
+    const g = document.getElementById("familyGuardian");
+    const input = document.getElementById("familyIdInput");
+    const hint = document.getElementById("familyIdHint");
+    if (seg) {
+      seg.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          seg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+          btn.classList.add("on");
+          const isNewborn = btn.dataset.t === "7";
+          if (g) g.classList.toggle("show", isNewborn);
+          if (input) input.placeholder = isNewborn ? "생년월일+성별 7자리 (예: 0701023)" : "000000-0000000";
+          if (hint) hint.textContent = isNewborn
+            ? "신생아(출생신고 전)는 7자리를 입력해 주세요."
+            : "주민등록번호 13자리를 입력해 주세요.";
+        });
+      });
+    }
+
+    const nationSeg = document.getElementById("idTypeSelf");
+    const selfLabel = document.getElementById("selfIdLabel");
+    const selfInput = document.getElementById("selfIdInput");
+    const selfHint = document.getElementById("selfIdHint");
+    if (nationSeg) {
+      nationSeg.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          nationSeg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+          btn.classList.add("on");
+          const isForeigner = btn.dataset.t === "f";
+          if (selfLabel) selfLabel.textContent = isForeigner ? "외국인등록번호 *" : "주민등록번호 *";
+          if (selfInput) selfInput.placeholder = "000000-0000000";
+          if (selfHint) selfHint.textContent = isForeigner
+            ? "외국인등록번호 13자리를 입력해 주세요."
+            : "주민등록번호 13자리를 입력해 주세요.";
+        });
+      });
+    }
+
+    go("V2-01A");
+
+    function toggleDoc(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle("show");
+    }
+  </script>
+</body>
+</html>

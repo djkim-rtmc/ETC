@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VD-IMS 로그인 2차 인증 목업</title>
+<style>
+  :root {
+    --pink: #e31c79;
+    --pink-soft: #fde7f2;
+    --text: #222;
+    --muted: #8d8d8d;
+    --line: #ececec;
+    --border: #e5e5e5;
+    --bg: #f6f7f9;
+    --field: #f5f5f5;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 13px;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  h1, h2, p { margin: 0; }
+  .review { height: 100%; display: grid; grid-template-rows: auto 1fr; background: #eef0f4; }
+  .tabs {
+    display: flex; gap: 6px; align-items: flex-end; overflow-x: auto;
+    padding: 12px 16px 0; background: #fff; border-bottom: 1px solid var(--line);
+  }
+  .tabs button {
+    flex: 0 0 auto; height: 36px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent;
+    background: transparent; color: #666; white-space: nowrap;
+  }
+  .tabs button.on { color: var(--pink); border-bottom-color: var(--pink); font-weight: 700; }
+  .review-body { display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
+  .screen { min-width: 0; min-height: 0; overflow: auto; background: var(--bg); }
+  .criteria {
+    background: #fff; border-left: 1px solid var(--line); padding: 22px 20px; overflow: auto;
+  }
+  .criteria h2 { font-size: 16px; margin-bottom: 6px; }
+  .criteria .kicker { color: var(--pink); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .criteria ul { margin: 12px 0 0; padding-left: 18px; }
+  .criteria li { margin: 0 0 10px; line-height: 1.5; }
+  .app { min-height: 100%; display: grid; grid-template-rows: 56px 1fr; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px 0 16px; background: #fff; border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; letter-spacing: -.3px; }
+  .brand i { color: var(--pink); font-style: normal; }
+  .top-right { display: flex; align-items: center; gap: 16px; color: #666; font-size: 12px; }
+  .notice { flex: 1; margin: 0 16px; color: #888; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toggle { width: 36px; height: 20px; border-radius: 99px; background: #e5e5e5; position: relative; }
+  .toggle i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .body { display: grid; grid-template-columns: 220px 1fr; min-height: 640px; }
+  .rail {
+    background: #fff; border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; padding: 8px 8px 14px; overflow: auto;
+  }
+  .rail .grp { margin: 12px 8px 4px; font-size: 10px; letter-spacing: .04em; color: #b0b0b0; font-weight: 700; }
+  .rail button {
+    width: 100%; text-align: left; border: 0; border-radius: 8px; background: transparent;
+    color: #555; padding: 8px 10px; font-size: 13px;
+  }
+  .rail button.on { background: var(--pink-soft); color: var(--pink); font-weight: 700; }
+  .inner-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .inner-tabs button {
+    height: 36px; padding: 0 14px; border: 0; border-bottom: 2px solid transparent;
+    background: transparent; color: #777;
+  }
+  .inner-tabs button.on { color: var(--pink); border-bottom-color: var(--pink); font-weight: 700; }
+  .list-head { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
+  .search { display: flex; gap: 8px; margin-bottom: 8px; }
+  .search input { flex: 1; }
+  .count { color: #666; font-size: 12px; margin: 8px 0; }
+  .main { overflow: auto; padding: 22px 28px 20px; display: flex; flex-direction: column; }
+  .main > * { flex-shrink: 0; }
+  .main > .footer { margin-top: auto; }
+  .main > :has(+ .footer) { margin-bottom: 28px; }
+  .page-title { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .card { background: #fff; border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px 18px 22px; }
+  .form-row {
+    display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: center;
+    min-height: 64px; border-bottom: 1px solid #f3f3f3;
+  }
+  .form-row label { color: #666; }
+  .req { color: var(--pink); }
+  input[type="text"], input[type="password"], select {
+    width: 100%; height: 36px; border: 1px solid #eee; border-radius: 4px;
+    background: #fafafa; padding: 0 12px;
+  }
+  input[readonly] { color: #777; }
+  .upload {
+    height: 92px; border: 1px dashed #e3e3e3; border-radius: 6px; background: #fafafa;
+    display: grid; place-items: center; text-align: center; color: #b0b0b0; font-size: 12px; line-height: 1.5;
+  }
+  .radios { display: flex; gap: 16px; align-items: center; }
+  .radios label { display: flex; gap: 6px; align-items: center; color: #333; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; }
+  .inline { display: flex; gap: 8px; align-items: center; }
+  .inline input { flex: 1; }
+  .at { color: #888; }
+  .domain-fixed {
+    height: 36px; min-width: 140px; padding: 0 12px; border: 1px solid #eee; border-radius: 4px;
+    background: #f3f3f3; color: #666; display: flex; align-items: center;
+  }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .actions.center { justify-content: center; }
+  .profile-logo { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+  .profile-actions { display: flex; gap: 6px; }
+  .profile-actions .btn { min-width: 56px; }
+  .upload-btn { width: 220px; height: 120px; cursor: pointer; }
+  .upload-btn:hover { border-color: var(--pink); color: var(--pink); }
+  .profile-img { max-width: 220px; max-height: 96px; object-fit: contain; }
+  .modal.confirm { width: min(400px, 100%); }
+  .modal-foot .admin-home { flex: 1; }
+  .modal.pw { width: min(560px, 100%); }
+  .switch { position: relative; width: 40px; height: 22px; padding: 0; border: 0; border-radius: 99px; background: #dcdfe4; cursor: pointer; transition: background .15s; }
+  .switch i { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+  .switch.on { background: var(--pink); }
+  .switch.on i { left: 21px; }
+  .switch:disabled { cursor: default; opacity: .45; }
+  .log-scroll { max-height: 160px; overflow-y: auto; border: 1px solid #eef0f3; border-radius: 8px; }
+  .log-scroll table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .log-scroll th { position: sticky; top: 0; z-index: 1; height: 40px; padding: 0 12px; background: #f5f7fa; white-space: nowrap; box-sizing: border-box; }
+  .log-scroll td { height: 40px; padding: 0 12px; white-space: nowrap; box-sizing: border-box; border-bottom: 1px solid #f2f3f5; }
+  .log-scroll tr:last-child td { border-bottom: 0; }
+  .imei-form { display: flex; align-items: flex-end; gap: 12px; }
+  .imei-field { display: flex; flex-direction: column; gap: 6px; }
+  .imei-field:nth-child(1) { flex: 1; }
+  .imei-field:nth-child(2) { flex: 1.4; }
+  .imei-label { font-size: 13px; font-weight: 600; color: #444; }
+  .imei-del-col { width: 80px; text-align: center; }
+  .imei-del {
+    display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 12px;
+    border: 1px solid #dfe3e8; border-radius: 4px; background: #fff; color: #666; font-size: 12px; font-weight: 600;
+    white-space: nowrap; cursor: pointer;
+  }
+  .imei-del:hover { border-color: var(--pink); color: var(--pink); }
+  .staff-summary { display: flex; align-items: center; gap: 0; font-size: 12px; }
+  .staff-total { padding: 3px 10px; border-radius: 6px; background: var(--pink-soft); color: var(--pink); font-weight: 700; margin-right: 6px; }
+  .staff-count { padding: 0 10px; color: #888; border-left: 1px solid #e5e5e5; }
+  .staff-count b { color: #222; margin-left: 2px; }
+  .modal.staff { width: min(620px, 100%); height: min(740px, 92vh); }
+  .staff-head { padding: 20px 20px 0; }
+  .staff-head h3 { font-size: 18px; margin-bottom: 12px; }
+  .staff-bar { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #edf0f4; border-radius: 10px; background: #f8f9fb; }
+  .staff-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; border: 1px solid #b9bfca; border-radius: 6px; background: #fff; }
+  .staff-search input { flex: 1; height: 30px !important; border: 0 !important; background: transparent !important; padding: 0 !important; }
+  .chips { display: flex; gap: 4px; }
+  .chip { height: 28px; padding: 0 10px; border: 1px solid #e5e8ee; border-radius: 99px; background: #fff; color: #666; font-size: 11px; white-space: nowrap; }
+  .chip.on { border-color: var(--pink); background: var(--pink-soft); color: var(--pink); }
+  .staff-entry { padding: 14px 20px 0; }
+  .staff-row.new { margin-bottom: 0; background: #fff; }
+  .staff-plus { width: 28px; height: 28px; border: 1px solid var(--pink); border-radius: 6px; background: var(--pink); color: #fff; font-size: 18px; line-height: 1; }
+  .staff-list-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 6px; font-size: 13px; font-weight: 700; }
+  .staff-list-head .muted { font-size: 11px; font-weight: 400; }
+  .staff-date { font-size: 12px; color: #777; white-space: nowrap; }
+  .staff-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #e6e9ee; border-radius: 8px; }
+  .staff-table th { position: sticky; top: 0; z-index: 1; height: 36px; padding: 0 10px; background: #f5f7fa; color: #666; font-size: 12px; text-align: center; border-bottom: 1px solid #e6e9ee; }
+  .staff-table th:first-child { text-align: left; border-top-left-radius: 8px; }
+  .staff-table th:last-child { border-top-right-radius: 8px; }
+  .staff-table td { height: 48px; padding: 0 10px; text-align: center; border-bottom: 1px solid #f0f2f5; }
+  .staff-table tr:last-child td { border-bottom: 0; }
+  .staff-table { table-layout: fixed; }
+  .staff-table th:nth-child(1) { width: 36%; }
+  .staff-table th:nth-child(2), .staff-table th:nth-child(3) { width: 14%; }
+  .staff-table th:nth-child(4) { width: 22%; }
+  .staff-table th:nth-child(5) { width: 14%; }
+  .staff-table td:first-child { text-align: left; }
+  .staff-table td { height: 44px; }
+  .staff-table .staff-name-cell { font-size: 13px; color: #222; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .staff-mark { color: var(--pink); font-size: 16px; font-weight: 800; }
+  .staff-none { color: #ccc; }
+  .staff-table .staff-del {
+    display: inline-flex; align-items: center; justify-content: center; width: auto; height: 26px; padding: 0 12px;
+    border: 1px solid #dfe3e8; border-radius: 4px; background: #fff; color: #666; font-size: 12px; font-weight: 600;
+    white-space: nowrap; cursor: pointer;
+  }
+  .staff-table .staff-del:hover { border-color: var(--pink); color: var(--pink); }
+  .staff-body { flex: 1; min-height: 0; overflow-y: auto; margin: 4px 20px 14px; }
+  .staff-empty { height: 130px; display: grid; place-content: center; justify-items: center; gap: 8px; border: 1px dashed #e3e6eb; border-radius: 8px; background: #fbfbfc; color: #777; font-size: 12px; }
+  .staff-empty span { font-size: 20px; opacity: .45; }
+  .staff-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 1px solid #e6e9ee; border-radius: 8px; margin-bottom: 8px; }
+  .staff-row .staff-name { flex: 1; height: 34px !important; border: 1px solid #e3e6eb !important; background: #fff !important; }
+  .check { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #333; white-space: nowrap; }
+  .check input { width: 18px; height: 18px; accent-color: var(--pink); }
+  .staff-del { width: 24px; height: 24px; border: 0; background: transparent; color: #aaa; font-size: 18px; }
+  .staff-foot { padding: 0 20px 14px; }
+  .staff-add { width: 100%; height: 34px; border: 1px dashed #d9dde4; border-radius: 8px; background: #fff; color: #444; font-size: 12px; }
+  .staff-add:hover { border-color: var(--pink); color: var(--pink); }
+  .staff-actions { display: flex; justify-content: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .confirm-body { padding: 26px 28px 6px; }
+  .confirm-body .lead { margin-bottom: 0; }
+  .logo-mark { color: var(--pink); font-size: 40px; font-weight: 800; letter-spacing: -1px; }
+  .logo-mark span { font-size: 18px; vertical-align: super; }
+  .inline.spread { justify-content: space-between; width: 100%; }
+  .muted { color: #888; }
+  .radios input { accent-color: var(--pink); }
+  .btn {
+    height: 34px; padding: 0 18px; border-radius: 4px; border: 1px solid var(--pink);
+    background: #fff; color: var(--pink); font-weight: 700;
+  }
+  .btn.fill { background: var(--pink); color: #fff; }
+  .btn.slim { height: 28px; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+  .card table { width: 100%; }
+  .lock-col { white-space: nowrap; }  .card { overflow: auto; }
+  .btn.ghost { border-color: #e5e5e5; color: #666; }
+  .btn:disabled { background: #f2f2f2; color: #aaa; border-color: #eee; }
+  .new { margin-left: 6px; font-size: 10px; color: var(--pink); font-weight: 700; }
+  .hint { margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .footer {
+    margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: #9a9a9a; font-size: 11px; line-height: 1.6;
+  }
+  .login-wrap { min-height: 640px; display: grid; place-items: center; }
+  .login-card, .mail, .choice-wrap { width: 460px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px 26px; }
+  .login-card h2, .mail h2 { font-size: 20px; }
+  .lead { margin: 8px 0 16px; color: var(--muted); }
+  .otp-hint { margin-top: 4px; }
+  .lock-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .lock-timer { display: flex; flex-direction: column; align-items: flex-end; flex: none; padding-top: 2px; }
+  .lock-timer span { font-size: 12px; color: var(--muted); }
+  .lock-timer b { font-size: 24px; font-weight: 800; color: var(--pink); letter-spacing: .5px; }
+  .otp-fail-hint { margin-top: 18px; }
+  .full.otp-submit { margin-top: 8px; }
+  .remember-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+  .remember-row .hint { margin: 0; white-space: nowrap; }
+  .remember { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; cursor: pointer; }
+  .remember input { flex: none; width: 16px; height: 16px; margin: 0; accent-color: var(--pink); }
+  .otp { display: flex; gap: 8px; }
+  .otp input { flex: 1; min-width: 0; width: 46px; height: 50px; text-align: center; font-size: 20px; font-weight: 800; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; }
+  .meta { display: flex; justify-content: space-between; margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .linkish { border: 0; background: none; color: var(--pink); font-weight: 700; padding: 0; }
+  .full { width: 100%; height: 40px; margin-top: 16px; }
+  .btn-pair { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-pair .btn { flex: 1; height: 40px; }
+  .note, .warn, .ask { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+  .note { background: var(--pink-soft); color: #9d245c; }
+  .warn { background: #fdecec; color: #d32020; }
+  .ask { background: #fff6df; color: #8a6400; }
+  .mail { width: 620px; padding: 0; overflow: hidden; }
+  .mail-subject { padding: 18px 24px 6px; font-size: 18px; font-weight: 700; }
+  .mail-from { display: flex; align-items: center; gap: 12px; padding: 10px 24px 16px; border-bottom: 1px solid var(--line); }
+  .mail-avatar { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: #c7d2fe; overflow: hidden; }
+  .mail-avatar::before { content: ""; position: absolute; top: 8px; left: 13px; width: 14px; height: 14px; border-radius: 50%; background: #6b7fd7; }
+  .mail-avatar::after { content: ""; position: absolute; bottom: -8px; left: 6px; width: 28px; height: 20px; border-radius: 50%; background: #6b7fd7; }
+  .mail-from p { font-size: 14px; }
+  .mail-from p span { color: var(--muted); font-size: 12px; }
+  .mail-from .mail-to { margin-top: 2px; color: var(--muted); font-size: 12px; }
+  .mail-body { padding: 44px 64px 52px; }
+  .mail-logo { display: flex; align-items: center; gap: 6px; font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  .mail-logo i { color: var(--pink); font-style: normal; font-size: 22px; }
+  .mail-title { margin-top: 44px; font-size: 18px; font-weight: 700; }
+  .mail-code { margin: 14px 0 40px; font-size: 38px; font-weight: 800; letter-spacing: 2px; }
+  .mail-body p { font-size: 15px; line-height: 1.9; color: #333; }
+  .mail-body .mail-sub { margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .code { margin: 14px 0; font-size: 32px; letter-spacing: 6px; font-weight: 800; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 720px; }
+  .choice { text-align: left; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .choice.on { border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-soft); }
+  .choice b { display: block; margin-bottom: 6px; }
+  .choice span { color: var(--muted); }
+  .tablet { width: 360px; background: #111; border-radius: 28px; padding: 14px; }
+  .tablet-screen { background: #fff; border-radius: 18px; min-height: 500px; padding: 28px 22px; }
+  .plan-section { margin-top: 28px; }
+  .plan-subtitle { margin-bottom: 10px; font-size: 15px; font-weight: 700; }
+  .card.plan-card { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 16px 18px; }
+  .plan-list { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.9; color: #333; }
+  .ask.plan-ask { margin: 0 0 12px; }
+  .choices.plan-choices { width: 100%; }
+  .steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .step b { display: block; color: var(--pink); margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--muted); font-weight: 700; background: #fafafa; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .tag.ok { background: #e7f7f3; color: #0b8577; }
+  .tag.bad { background: #fdecec; color: #d32020; }
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    background: #222; color: #fff; padding: 12px 16px; border-radius: 8px; display: none; z-index: 40;
+  }
+  .toast.on { display: block; }
+  .modal-back {
+    position: fixed; inset: 0; background: rgba(70,70,70,.42);
+    display: none; place-items: center; z-index: 30; padding: 24px;
+  }
+  .modal-back.on { display: grid; }
+  .modal {
+    width: min(720px, 100%); max-height: 88vh;
+    background: #fff; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 32px 80px rgba(15,23,42,.22), 0 0 0 1px rgba(0,0,0,.08);
+    display: flex; flex-direction: column;
+  }
+  .modal-scroll { overflow: auto; padding: 22px 28px 8px; }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .modal-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 0 0 16px; }
+  .modal-tabs button { height: 40px; padding: 0 16px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #777; }
+  .modal-tabs button.on { color: var(--pink); border-bottom-color: var(--pink); font-weight: 700; }
+  .modal.detail { height: min(680px, 88vh); }
+  .modal.detail .modal-scroll { flex: 1; padding-top: 0; }
+  .modal-head { padding: 22px 28px 0; }
+  .modal-head .modal-tabs { margin-bottom: 16px; }
+  .subhead-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 4px; }
+  .subhead-row .subhead { margin: 0; }
+  .modal-panel { display: none; }
+  .modal-panel.on { display: block; }
+  .modal-card { border: 1px solid #e6ebf1; border-radius: 16px; padding: 6px 18px 10px; margin-bottom: 12px; }
+  .modal .form-row { grid-template-columns: 108px 1fr; min-height: 52px; border-bottom: 0; gap: 12px; }
+  .modal input[type="text"], .modal input[type="password"] {
+    height: 40px; border: 0; border-radius: 8px; background: #f3f5f8; color: #444;
+  }
+  .modal input:disabled { color: #555; }
+  .notice-row {
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 48px; padding: 0 16px; margin: 8px 0; border-radius: 12px; background: #fff;
+    box-shadow: inset 0 0 0 1px #eef1f5;
+  }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 28px 18px; }
+  .btn.round { height: 38px; border-radius: 10px; }
+  .btn.soft { border: 0; background: #f4f5f7; color: #333; }
+  .subhead { margin: 14px 0 4px; font-size: 14px; font-weight: 700; }
+  .pager { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+  .pager button { width: 28px; height: 28px; border: 0; background: transparent; color: #888; border-radius: 6px; }
+  .pager button.on { color: var(--pink); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="review">
+  <div class="tabs" id="tabs">
+    <button type="button" data-scene="login">로그인</button>
+    <button type="button" data-scene="otp">이메일 인증</button>
+    <button type="button" data-scene="lock">인증 실패 잠금</button>
+    <button type="button" data-scene="grace">이메일 없음 · 유예</button>
+    <button type="button" data-scene="block">이메일 없음 · 차단</button>
+    <button type="button" data-scene="mail">인증번호 메일</button>
+    <button type="button" data-scene="deny">미등록 기기 차단</button>
+    <button type="button" data-scene="plan">진행 방향</button>
+  </div>
+  <div class="review-body">
+    <div class="screen">
+      <div class="app">
+        <header class="topbar">
+          <div class="brand"><i>♥</i> VD-IMS</div>
+          <div class="notice">[시스템 장애] 1. [공지] 여러분의 소중한 의견을 반영하여, 더 신뢰할 수 있고 효율적인 빔스를 만들고 있습니다.</div>
+          <div class="top-right">
+            <span>KR 한국어</span>
+            <span class="org">메디체크병원 통합관리자</span>
+          </div>
+        </header>
+        <div class="body">
+          <nav class="rail" aria-label="주요 메뉴">
+            <div class="grp">SUPER ADMIN</div>
+            <button type="button" data-nav="setting">설정</button>
+            <button type="button" data-nav="accounts">계정 관리</button>
+          </nav>
+          <main class="main" id="main"></main>
+        </div>
+      </div>
+    </div>
+    <aside class="criteria" id="criteria"></aside>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal-back" id="confirm-modal"></div>
+<div class="modal-back" id="staff-modal"></div>
+<script>
+const orgName = "메디체크병원";
+const domain = "hospital.or.kr";
+const roleOptions = ["슈퍼 관리자", "병원 관리자", "병원 의사", "병원 간호사", "보건소 관리자", "보건소 의사", "보건소 간호사", "유통사 관리자", "유통사 직원"];
+let profileImage = "default";
+let staffList = [
+  { name: "김대충", pre: true, vac: true, date: "2026.10.14 16:20" },
+  { name: "이서윤", pre: true, vac: false, date: "2026.10.13 11:05" },
+  { name: "박지훈", pre: false, vac: true, date: "2026.10.10 09:40" },
+  { name: "최민서", pre: true, vac: true, date: "2026.10.02 14:12" },
+  { name: "정하은", pre: false, vac: true, date: "2026.09.25 10:30" },
+  { name: "강도윤", pre: true, vac: false, date: "2026.09.18 15:48" },
+  { name: "조수아", pre: true, vac: true, date: "2026.09.03 13:22" },
+  { name: "윤예준", pre: false, vac: true, date: "2026.08.27 09:15" },
+  { name: "한지우", pre: true, vac: false, date: "2026.08.11 17:02" }
+];
+function staffSummary() {
+  if (!staffList.length) return `<span class="muted">등록된 의료진이 없습니다.</span>`;
+  const count = k => staffList.filter(s => staffKind(s) === k).length;
+  return `<span class="staff-total">총 ${staffList.length}명</span>
+    <span class="staff-count">예진 <b>${count("pre")}</b></span>
+    <span class="staff-count">접종 <b>${count("vac")}</b></span>
+    <span class="staff-count">예진·접종 <b>${count("both")}</b></span>`;
+}
+function staffKind(s) {
+  if (s.pre && s.vac) return "both";
+  if (s.pre) return "pre";
+  if (s.vac) return "vac";
+  return "none";
+}
+function openStaff() {
+  const back = document.getElementById("staff-modal");
+  if (!back) return;
+  let draft = staffList.map(s => ({ ...s }));
+  let filter = "all";
+  let keyword = "";
+  let dirty = false;
+  back.innerHTML = `<div class="modal staff" role="dialog" aria-label="의료진 관리">
+    <div class="staff-head">
+      <h3>의료진 관리</h3>
+      <div class="staff-bar">
+        <label class="staff-search"><span aria-hidden="true">⌕</span><input type="text" id="staff-keyword" placeholder="이름 검색"></label>
+        <button class="btn fill" type="button" id="staff-search">검색</button>
+        <div class="chips" id="staff-chips"></div>
+      </div>
+    </div>
+    <div class="staff-entry">
+      <div class="staff-row new">
+        <input type="text" class="staff-name" id="staff-new-name" placeholder="의료진명을 입력해주세요.">
+        <label class="check"><input type="checkbox" id="staff-new-pre" checked> 예진</label>
+        <label class="check"><input type="checkbox" id="staff-new-vac"> 접종</label>
+        <button type="button" class="staff-plus" id="staff-add" aria-label="의료진 추가">+</button>
+      </div>
+    </div>
+    <div class="staff-list-head"><span>등록된 의료진</span><span class="muted">최근 등록순</span></div>
+    <div class="staff-body" id="staff-body"></div>
+    <div class="staff-foot">
+      <div class="staff-actions"><button class="btn round ghost" type="button" id="staff-close">닫기</button><button class="btn round fill" type="button" id="staff-save" disabled>저장</button></div>
+    </div>
+  </div>`;
+  back.classList.add("on");
+  const body = document.getElementById("staff-body");
+  const chips = document.getElementById("staff-chips");
+  const save = document.getElementById("staff-save");
+  const touch = () => { dirty = true; save.disabled = false; };
+  const renderChips = () => {
+    const count = k => k === "all" ? draft.length : draft.filter(s => staffKind(s) === k).length;
+    chips.innerHTML = [["all", "전체"], ["pre", "예진"], ["vac", "접종"], ["both", "예진·접종"]]
+      .map(([k, label]) => `<button type="button" class="chip ${filter === k ? "on" : ""}" data-chip="${k}">${label} ${count(k)}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach(btn => btn.addEventListener("click", () => { filter = btn.dataset.chip; render(); }));
+  };
+  const render = () => {
+    renderChips();
+    const rows = draft
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => (filter === "all" || staffKind(s) === filter) && (!keyword || s.name.includes(keyword)));
+    if (!draft.length) {
+      body.innerHTML = `<div class="staff-empty"><span aria-hidden="true">👥</span><p>등록된 의료진이 없습니다.</p></div>`;
+      return;
+    }
+    if (!rows.length) {
+      body.innerHTML = `<div class="staff-empty"><p>조건에 맞는 의료진이 없습니다.</p></div>`;
+      return;
+    }
+    body.innerHTML = `<table class="staff-table">
+      <thead><tr><th>의료진명</th><th>예진권한</th><th>접종권한</th><th>등록일자</th><th>삭제</th></tr></thead>
+      <tbody>${rows.map(({ s, i }) => `<tr class="staff-tr" data-idx="${i}">
+        <td class="staff-name-cell">${s.name}</td>
+        <td>${s.pre ? '<span class="staff-mark" aria-label="예진권한 있음">✓</span>' : '<span class="staff-none">-</span>'}</td>
+        <td>${s.vac ? '<span class="staff-mark" aria-label="접종권한 있음">✓</span>' : '<span class="staff-none">-</span>'}</td>
+        <td class="staff-date">${s.date || ""}</td>
+        <td><button type="button" class="staff-del">삭제</button></td>
+      </tr>`).join("")}</tbody>
+    </table>`;
+    body.querySelectorAll(".staff-tr").forEach(rowEl => {
+      const s = draft[Number(rowEl.dataset.idx)];
+      rowEl.querySelector(".staff-del").addEventListener("click", () => { draft.splice(draft.indexOf(s), 1); touch(); render(); });
+    });
+  };
+  render();
+  const close = () => back.classList.remove("on");
+  document.getElementById("staff-close").addEventListener("click", close);
+  back.onclick = (e) => { if (e.target === back) close(); };
+  const newName = document.getElementById("staff-new-name");
+  const newPre = document.getElementById("staff-new-pre");
+  const newVac = document.getElementById("staff-new-vac");
+  const addStaff = () => {
+    const name = newName.value.trim();
+    if (!name) { showToast("의료진명을 입력해주세요."); newName.focus(); return; }
+    if (!newPre.checked && !newVac.checked) { showToast("예진 또는 접종을 하나 이상 선택해주세요."); return; }
+    const now = new Date();
+    const date = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    draft.unshift({ name, pre: newPre.checked, vac: newVac.checked, date });
+    newName.value = ""; newPre.checked = true; newVac.checked = false;
+    filter = "all"; keyword = "";
+    document.getElementById("staff-keyword").value = "";
+    touch(); render();
+    body.scrollTop = 0;
+    newName.focus();
+  };
+  document.getElementById("staff-add").addEventListener("click", addStaff);
+  const runSearch = () => { keyword = document.getElementById("staff-keyword").value.trim(); render(); };
+  document.getElementById("staff-search").addEventListener("click", runSearch);
+  document.getElementById("staff-keyword").addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
+  save.addEventListener("click", () => {
+    if (!dirty) return;
+    if (draft.some(s => !s.name.trim())) { showToast("의료진명을 입력해주세요."); return; }
+    if (draft.some(s => !s.pre && !s.vac)) { showToast("예진 또는 접종을 하나 이상 선택해주세요."); return; }
+    staffList = draft.map(s => ({ ...s, name: s.name.trim() }));
+    const summary = document.getElementById("staff-summary");
+    if (summary) summary.innerHTML = staffSummary();
+    close();
+    showToast("의료진을 저장했습니다.");
+  });
+}
+function profileSlot() {
+  if (!profileImage) {
+    return `<button type="button" class="upload upload-btn" id="profile-upload">⇪<br>프로필 이미지를 업로드 해주세요.<br>(파일 최대 용량 2MB)</button>`;
+  }
+  const visual = profileImage === "default"
+    ? `<div class="logo-mark">V<span>d</span>-IMS</div>`
+    : `<img class="profile-img" src="${profileImage}" alt="병원 프로필 이미지">`;
+  return `<div class="profile-logo">${visual}<div class="profile-actions"><button class="btn slim" type="button" id="profile-change">변경</button><button class="btn soft slim" type="button" id="profile-delete">삭제</button></div></div>`;
+}
+function bindProfileSlot() {
+  const slot = document.getElementById("profile-slot");
+  const file = document.getElementById("profile-file");
+  if (!slot || !file) return;
+  const pick = () => { file.value = ""; file.click(); };
+  const upload = document.getElementById("profile-upload");
+  if (upload) upload.addEventListener("click", pick);
+  const change = document.getElementById("profile-change");
+  if (change) change.addEventListener("click", pick);
+  const del = document.getElementById("profile-delete");
+  if (del) del.addEventListener("click", openProfileDelete);
+  file.onchange = () => {
+    const f = file.files[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { showToast("파일 최대 용량은 2MB입니다."); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      profileImage = reader.result;
+      slot.innerHTML = profileSlot();
+      bindProfileSlot();
+      showToast("프로필 이미지를 등록했습니다.");
+    };
+    reader.readAsDataURL(f);
+  };
+}
+function openAdminVerified() {
+  const back = document.getElementById("confirm-modal");
+  if (!back) return;
+  back.innerHTML = `<div class="modal confirm" role="dialog" aria-label="관리자 계정 인증">
+    <div class="confirm-body"><h3>관리자 계정 인증</h3><p class="lead">관리자 계정은 1회 인증을 통해 갱신하지 않고 계속 사용할 수 있습니다.</p></div>
+    <div class="modal-foot"><button class="btn round fill admin-home" type="button" id="admin-home">홈으로 이동하기</button></div>
+  </div>`;
+  back.onclick = null;
+  back.classList.add("on");
+  document.getElementById("admin-home").addEventListener("click", () => {
+    back.classList.remove("on");
+    go("hospital");
+  });
+}
+
+function openPasswordChange() {
+  const back = document.getElementById("confirm-modal");
+  if (!back) return;
+  back.innerHTML = `<form class="modal pw" role="dialog" aria-label="비밀번호 변경" id="pw-form">
+    <div class="modal-scroll">
+      <h3>비밀번호 변경</h3>
+      <div class="modal-card">
+        ${row("현재 비밀번호", `<input type="password" id="pw-current" placeholder="현재 비밀번호를 입력해주세요.">`)}
+        ${row("새 비밀번호", `<input type="password" id="pw-new" placeholder="새 비밀번호를 입력해주세요.">`)}
+        ${row("새 비밀번호 확인", `<input type="password" id="pw-confirm" placeholder="새 비밀번호를 다시 입력해주세요.">`)}
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn round soft" type="button" id="pw-cancel">취소</button><button class="btn round fill" type="submit">변경</button></div>
+  </form>`;
+  back.classList.add("on");
+  const close = () => back.classList.remove("on");
+  document.getElementById("pw-cancel").addEventListener("click", close);
+  back.onclick = (e) => { if (e.target === back) close(); };
+  document.getElementById("pw-current").focus();
+  document.getElementById("pw-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const current = document.getElementById("pw-current").value;
+    const next = document.getElementById("pw-new").value;
+    const confirmPw = document.getElementById("pw-confirm").value;
+    if (!current || !next || !confirmPw) return showToast("비밀번호를 모두 입력해주세요.");
+    if (next !== confirmPw) return showToast("새 비밀번호가 일치하지 않습니다.");
+    if (next === current) return showToast("현재 비밀번호와 다른 비밀번호를 입력해주세요.");
+    close();
+    showToast("비밀번호를 변경했습니다.");
+  });
+}
+
+function openProfileDelete() {
+  const back = document.getElementById("confirm-modal");
+  if (!back) return;
+  back.innerHTML = `<div class="modal confirm" role="dialog" aria-label="프로필 이미지 삭제">
+    <div class="confirm-body"><h3>프로필 이미지를 삭제할까요?</h3><p class="lead">삭제하면 이미지를 다시 업로드해야 합니다.</p></div>
+    <div class="modal-foot"><button class="btn round soft" type="button" id="confirm-cancel">취소</button><button class="btn round fill" type="button" id="confirm-ok">삭제</button></div>
+  </div>`;
+  back.classList.add("on");
+  const close = () => back.classList.remove("on");
+  document.getElementById("confirm-cancel").addEventListener("click", close);
+  back.onclick = (e) => { if (e.target === back) close(); };
+  document.getElementById("confirm-ok").addEventListener("click", () => {
+    close();
+    profileImage = null;
+    document.getElementById("profile-slot").innerHTML = profileSlot();
+    bindProfileSlot();
+    showToast("프로필 이미지를 삭제했습니다.");
+  });
+}
+
+function settingsTabs(active) {
+  const tabs = [["hospital", "병원 프로필"], ["profile", "계정 프로필"], ["imei", "기기 설정"]];
+  return `<div class="inner-tabs">${tabs.map(([id, label]) => `<button type="button" data-inner="${id}" class="${id === active ? "on" : ""}">${label}</button>`).join("")}</div>`;
+}
+function shell(title, body, extra) {
+  return `<div class="page-title">${title}${extra || ""}</div>${body}
+    <div class="footer">(주)리얼타임메디체크 &nbsp; 대표: 임재준 &nbsp; 사업자등록번호: 185-87-00995<br>
+    [본사] 강원도 원주시 혁신로 19 H타워동 503호<br>
+    [연구소] 인천 남동구 호구포로 194 지식산업센터 마크원 1309-1311호<br>
+    대표번호: 070-8656-7217 &nbsp;|&nbsp; 이메일: info@rtmc-kr.com<br>© 2020. (주)리얼타임메디체크. All Rights Reserved.</div>`;
+}
+function row(label, field) {
+  return `<div class="form-row"><label>${label}</label><div>${field}</div></div>`;
+}
+const scenes = {
+  hospital: () => shell("병원 프로필", settingsTabs("hospital") + `<form class="card" id="hospital-form">
+    ${row("프로필", `<div id="profile-slot">${profileSlot()}</div><input type="file" id="profile-file" accept="image/*" hidden>`)}
+    ${row("병원명", `<input type="text" value="${orgName}" disabled>`)}
+    ${row("대표자명", `<input type="text" value="임재준" placeholder="대표자명을 입력해주세요.">`)}
+    ${row("사업자번호", `<input type="text" value="123-45-67444" placeholder="사업자번호를 입력해주세요.">`)}
+    ${row("주소", `<input type="text" value="앵고개로 928, DA타워 3층" placeholder="주소를 입력해주세요.">`)}
+    ${row("팩스", `<input type="text" value="02-984-4477" placeholder="팩스를 입력해주세요.">`)}
+    ${row("전화번호", `<input type="text" value="070-8656-7217" placeholder="전화번호를 입력해주세요.">`)}
+    ${row("전화번호 공개", `<div class="radios"><label><input type="radio" name="pub"> 공개</label><label><input type="radio" name="pub" checked> 비공개</label></div>`)}
+    ${row(`이메일 도메인 <span class="req">*</span>`, `<input type="text" value="${domain}"><p class="hint">소속 계정 이메일은 이 도메인만 사용할 수 있습니다. 변경은 기관 관리자가 합니다.</p>`)}
+    ${row("의료진", `<div class="inline spread"><span class="staff-summary" id="staff-summary">${staffSummary()}</span><button class="btn" type="button" id="staff-open">의료진 관리</button></div>`)}
+    <div class="actions center"><button class="btn" type="button" id="cancel">취소</button><button class="btn fill" type="submit" disabled>수정</button></div>
+  </form>`),
+  profile: () => shell("계정 프로필", settingsTabs("profile") + `<form class="card" id="profile-form">
+    ${row("아이디", `<input type="text" value="test" disabled>`)}
+    ${row("비밀번호", `<div class="inline"><input type="password" value="password" aria-label="비밀번호" disabled><button class="btn" type="button" id="pw-change">변경</button></div>`)}
+    ${row("이름", `<input type="text" value="통합관리자" placeholder="이름을 입력해주세요.">`)}
+    ${row("전화번호", `<input type="text" value="070-8656-7217" placeholder="전화번호를 입력해주세요.">`)}
+    ${row(`이메일 <span class="req">*</span>`, `<div class="inline"><input type="text" value="abc" placeholder="이메일 아이디" aria-label="이메일 아이디"><span class="at">@</span><div class="domain-fixed">${domain}</div></div><p class="hint">도메인은 병원 프로필에 등록된 값으로 고정됩니다. 이메일을 바꾸면 인증번호 확인 후 저장합니다.</p>`)}
+    ${row("부서명", `<input type="text" value="" placeholder="부서명을 입력해주세요.">`)}
+    ${row("권한 설정", `<select aria-label="권한 설정">${roleOptions.map(r => `<option${r === "슈퍼 관리자" ? " selected" : ""}>${r}</option>`).join("")}</select>`)}
+    <div class="actions center"><button class="btn" type="button">취소</button><button class="btn fill" type="submit">수정</button></div>
+  </form>`),
+  account: () => shell("계정 생성", `<form class="card" id="account-form">
+    <div class="actions" style="margin-top:0"><button class="btn ghost" type="button">목록</button></div>
+    ${row("아이디 <span class='req'>*</span>", `<div class="inline"><input type="text" placeholder="아이디를 입력해주세요."><button class="btn" type="button" id="dup">중복체크</button></div>`)}
+    ${row("비밀번호 <span class='req'>*</span>", `<input type="password" placeholder="비밀번호를 입력해주세요.">`)}
+    ${row("비밀번호 확인 <span class='req'>*</span>", `<input type="password" placeholder="비밀번호를 다시 입력해주세요.">`)}
+    ${row("이름", `<input type="text" placeholder="이름을 입력해주세요.">`)}
+    ${row("전화번호", `<input type="text" placeholder="전화번호를 입력해주세요.">`)}
+    ${row(`이메일 <span class="req">*</span><span class="new">추가</span>`, `<div class="inline"><input type="text" value="nurse.kim" aria-label="이메일 아이디"><span class="at">@</span><div class="domain-fixed">${domain}</div></div><p class="hint">도메인은 병원 프로필에 등록된 값으로 고정됩니다.</p>`)}
+    <div class="form-row split">
+      <label>권한 설정 <span class="req">*</span></label><div><select><option>역할을 선택해주세요.</option><option>병원 사용자</option></select></div>
+      <label>기관명 <span class="req">*</span></label><div class="inline"><input type="text" placeholder="기관을 선택해주세요." readonly><button class="btn" type="button">선택</button></div>
+    </div>
+    <div class="actions"><button class="btn" type="button">취소</button><button class="btn fill" type="submit">등록</button></div>
+  </form>`),
+  imei: () => shell("설정", settingsTabs("imei") + `
+    <form class="card imei-form" id="imei-form">
+      <label class="imei-field"><span class="imei-label">기기명</span><input id="imei-name" type="text" placeholder="기기명을 입력해주세요."></label>
+      <label class="imei-field"><span class="imei-label">IMEI</span><input id="imei" type="text" inputmode="numeric" maxlength="15" placeholder="IMEI 15자리를 입력해주세요."></label>
+      <button class="btn fill" type="submit">등록</button>
+    </form>
+    <div class="card" style="margin-top:12px;padding:0">
+      <table id="imei-table"><thead><tr><th>기기명</th><th>IMEI</th><th class="imei-del-col">삭제</th></tr></thead>
+      <tbody>
+        <tr><td>접종실 1</td><td>356938104221903</td><td class="imei-del-col"><button type="button" class="imei-del">삭제</button></td></tr>
+        <tr><td>접종실 2</td><td>356938104221904</td><td class="imei-del-col"><button type="button" class="imei-del">삭제</button></td></tr>
+      </tbody></table>
+    </div>`),
+  accounts: () => shell("계정 관리", `
+    <div class="search"><input type="text" placeholder="검색어를 입력해주세요."><button class="btn fill" type="button" id="search">검색</button></div>
+    <div class="list-head"><button class="btn" type="button" id="create-account">계정생성</button></div>
+    <p class="count">● 전체 47개</p>
+    <div class="card" style="padding:0">
+      <table>
+        <thead><tr><th>계정 유형</th><th>기관명</th><th>계정 권한</th><th>아이디</th><th>전화번호</th><th>탈퇴 여부</th><th class="lock-col">잠금 여부</th><th></th></tr></thead>
+        <tbody id="account-rows"></tbody>
+      </table>
+    </div>
+    <div class="pager"><button type="button">‹</button><button type="button" class="on">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button><button type="button">›</button></div>
+    <div class="modal-back" id="account-modal"></div>`),
+  login: () => `<div class="login-wrap"><form class="login-card" id="login-form"><h2>로그인</h2><p class="lead">빔스 기관 계정</p>
+    <label>아이디</label><input type="text" value="medicheck" style="margin-top:6px">
+    <label style="display:block;margin-top:12px">비밀번호</label><input type="password" value="password" style="margin-top:6px">
+    <button class="btn fill full" type="submit">로그인</button></form></div>`,
+  otp: () => `<div class="login-wrap"><form class="login-card" id="otp-form"><h2>이메일 인증</h2><p class="lead">ad***@${domain} 로 인증번호를 보냈습니다.</p>
+    <div class="otp">${[1,2,3,4,5,6].map(i => `<input maxlength="1" inputmode="numeric" aria-label="인증번호 ${i}자리">`).join("")}</div>
+    <div class="meta"><span id="timer">남은 시간 05:00</span><button type="button" class="linkish" id="resend" disabled>재발송 01:00</button></div>
+    <div id="otp-msg"></div>
+    <p class="hint otp-fail-hint">5회 실패 시 10분간 접근할 수 없습니다.</p>
+    <button class="btn fill full otp-submit" id="otp-ok" disabled type="submit">확인</button>
+    <div class="remember-row"><label class="remember"><input type="checkbox" id="remember"> 30일 동안 인증 유지하기</label><span class="hint">30일이 지나면 재인증이 필요합니다.</span></div></form></div>`,
+  lock: () => `<div class="login-wrap"><div class="login-card"><div class="lock-head"><div><h2>인증 실패하였습니다.</h2><p class="lead">인증번호 5회 실패</p></div><div class="lock-timer"><span>남은 시간</span><b>09:40</b></div></div><div class="warn">10분 후 재시도 또는 관리자에게 초기화 요청을 해주세요.</div></div></div>`,
+  grace: () => `<div class="login-wrap"><div class="login-card"><h2>이메일을 등록해 주세요</h2><div class="note">2026.11.13까지는 로그인할 수 있습니다.</div><div class="btn-pair"><button class="btn" type="button" id="grace-email">이메일 등록하기</button><button class="btn fill" type="button" id="later">로그인 하기</button></div></div></div>`,
+  block: () => `<div class="login-wrap"><div class="login-card"><h2>로그인할 수 없습니다</h2><div class="warn">이메일 인증 없이 로그인할 수 있는 기간이 종료되었습니다.<br>로그인이 필요한 경우 관리자에게 문의해주세요.</div></div></div>`,
+  mail: () => `<div class="login-wrap"><article class="mail">
+    <div class="mail-subject">[빔스] 로그인 인증번호</div>
+    <header class="mail-from">
+      <span class="mail-avatar" aria-hidden="true"></span>
+      <div><p><b>빔스(VD-IMS)</b> <span>&lt;no-reply@회사도메인&gt;</span></p><p class="mail-to">나에게 ▾</p></div>
+    </header>
+    <div class="mail-body">
+      <div class="mail-logo"><i>♥</i> VD-IMS</div>
+      <h3 class="mail-title">인증번호를 확인해주세요.</h3>
+      <div class="mail-code">483921</div>
+      <p>빔스 로그인 절차에 따라 이메일 인증번호를 발급해드립니다.</p>
+      <p>인증번호는 이메일 발송 시점으로부터 5분동안 유효합니다.</p>
+      <p class="mail-sub">본인이 요청하지 않았다면 비밀번호를 변경해 주세요.</p>
+    </div>
+  </article></div>`,
+  deny: () => `<div class="login-wrap"><div class="tablet"><div class="tablet-screen"><h2>로그인할 수 없습니다</h2><div class="warn">이 태블릿은 관리자 계정에 등록되어 있지 않습니다. 빔스 설정에서 IMEI를 등록한 뒤 다시 로그인해 주세요.</div></div></div></div>`,
+  plan: () => shell("진행 방향", `<div class="steps"><div class="step"><b>1</b>사전 테스트에서 로그인, 이메일 등록, 태블릿 등록을 확인합니다.</div><div class="step"><b>2</b>적용 시작 1주 전에 기관에 공지합니다.</div><div class="step"><b>3</b>빔스 이메일 인증과 미란다 태블릿 등록을 적용합니다.</div></div>
+    <div class="plan-section">
+      <div class="plan-subtitle">관리자 1회 인증</div>
+      <div class="card plan-card">
+        <ul class="plan-list">
+          <li>관리자 계정으로 이메일 인증을 마쳤을 때만 <b>관리자 계정 인증</b> 모달을 보여줍니다.</li>
+          <li>관리자 계정은 1회 인증을 통해 갱신하지 않고 계속 사용할 수 있습니다.</li>
+          <li>모달의 <b>홈으로 이동하기</b>를 누르면 모달을 닫고 홈 화면으로 이동합니다.</li>
+          <li>미란다 로그인 계정은 빔스 관리자 계정으로 통일합니다.</li>
+        </ul>
+        <button class="btn slim" type="button" id="admin-preview">모달 미리보기</button>
+      </div>
+    </div>
+    <div class="plan-section">
+      <div class="plan-subtitle">CMS 적용 여부</div>
+      <div class="ask plan-ask">CMS(RTMC 관리자 계정)에 같은 인증을 적용할지는 결정이 필요합니다.</div>
+      <div class="choices plan-choices"><button class="choice" type="button" data-pick="on"><b>빔스와 동일 적용</b><span>인증번호, 5분, 5회 실패 시 10분 잠금을 같이 씁니다.</span></button><button class="choice" type="button" data-pick="off"><b>이번 범위에서 제외</b><span>CMS는 기존 로그인을 유지합니다.</span></button></div>
+    </div>`)
+};
+
+const criteria = {
+  hospital: ["병원 프로필", [
+    "사이드바에 설정 메뉴를 추가하고, 설정 안에서 병원 프로필 · 계정 프로필 · 기기 설정 탭으로 관리합니다.",
+    "프로필 이미지가 없으면 업로드 영역을 보여주고, 누르면 파일 선택 창이 열립니다. (최대 2MB)",
+    "이미지가 있으면 변경 · 삭제 버튼을 보여줍니다. 변경은 파일 선택 창을 열고, 삭제는 확인 팝업 후 삭제합니다.",
+    "이메일 도메인 항목을 필수 입력으로 추가합니다. 기관 관리자가 등록 · 변경합니다.",
+    "의료진 관리 버튼을 누르면 의료진 관리 모달을 엽니다. 이름 검색과 전체 / 예진 / 접종 / 예진·접종 필터를 제공합니다.",
+    "모달 위쪽 입력 줄에 의료진명과 예진 / 접종을 입력하고 + 버튼으로 추가합니다. 예진이 기본 선택됩니다.",
+    "그 아래에 등록된 의료진 리스트를 최근 등록순으로 보여주고, 영역을 넘으면 세로 스크롤합니다. 리스트는 의료진명 / 예진권한 / 접종권한 / 등록일자 / 삭제로 구성되며, 권한이 있는 항목에만 체크 표시를 보여주고 삭제 버튼으로 삭제합니다.",
+    "변경이 있을 때만 저장 버튼이 활성화되고, 저장하면 병원 프로필에 총 인원과 예진 / 접종 / 예진·접종 인원이 표시됩니다.",
+    "소속 계정 이메일은 이 도메인만 사용할 수 있습니다."
+  ]],
+  profile: ["계정 프로필", [
+    "설정 메뉴의 계정 프로필 탭에서 관리합니다.",
+    "계정 상세 > 계정정보와 같은 항목(아이디 · 비밀번호 · 이름 · 전화번호 · 이메일 · 부서명 · 권한 설정)으로 구성합니다.",
+    "비밀번호 옆 변경 버튼을 누르면 비밀번호 변경 모달(현재 비밀번호 / 새 비밀번호 / 새 비밀번호 확인)을 엽니다.",
+    "이름 · 전화번호 · 이메일 · 부서명을 입력 · 수정할 수 있고, 아이디는 변경할 수 없습니다.",
+    "권한 설정은 드롭다운으로 선택합니다. (슈퍼 관리자 / 병원 관리자 / 병원 의사 / 병원 간호사 / 보건소 관리자 / 보건소 의사 / 보건소 간호사 / 유통사 관리자 / 유통사 직원)",
+    "이메일 도메인은 병원 프로필에 등록된 값으로 고정됩니다.",
+    "이메일 변경은 인증번호 확인 후 저장됩니다."
+  ]],
+  account: ["계정 생성", [
+    "계정 관리의 계정생성 버튼을 누르면 페이지 이동 없이 모달로 엽니다.",
+    "이메일은 필수 입력이며, 도메인은 병원 프로필에 등록된 값으로 고정됩니다.",
+    "아이디는 중복체크 후 등록합니다."
+  ]],
+  imei: ["기기 설정", [
+    "설정 메뉴의 기기 설정 탭에서 계정별 미란다 태블릿 IMEI를 등록합니다.",
+    "등록 영역에서 기기명과 IMEI(15자리)를 입력한 뒤 등록합니다.",
+    "목록은 기기명 / IMEI / 삭제로 구성하고, 삭제 버튼으로 등록된 기기를 지웁니다.",
+    "등록되지 않은 기기의 미란다 로그인은 차단합니다.",
+    "분실 · 교체 시 해당 기기를 삭제하면 그 기기로는 로그인할 수 없습니다."
+  ]],
+  accounts: ["계정 관리", [
+    "목록의 탈퇴 여부 옆에 잠금 여부 컬럼을 추가하고, 사용 / 잠금으로 표시합니다.",
+    "계정생성 버튼은 페이지 이동 없이 계정 생성 모달을 엽니다.",
+    "계정 상세 모달은 계정정보 / 로그인 기록 / 알림 설정 탭으로 나누고, 탭과 관계없이 높이를 같게 유지합니다.",
+    "계정정보 탭의 전화번호 아래에 이메일과 부서명을 추가합니다. 이메일 도메인은 병원 프로필에 등록된 값으로 고정됩니다.",
+    "수정 버튼을 누르면 비밀번호 · 이름 · 전화번호 · 이메일 · 부서명 · 권한 설정을 바꿀 수 있고, 버튼이 저장으로 바뀝니다. 저장하면 변경 사항이 반영되고, 수정 중 취소를 누르면 원래 값으로 돌아가 수정 버튼으로 바뀝니다.",
+    "로그인 기록 탭에는 로그인 기록과 인증번호 실패를 별도 영역으로 함께 보여주고, 각 리스트는 최대 3개까지 보이며 넘으면 위아래로 스크롤합니다.",
+    "인증번호 5회 실패로 잠긴 계정은 인증번호 실패 제목 오른쪽의 초기화 버튼으로 10분 접근 제한을 풀고, 목록의 잠금 여부도 사용으로 바뀝니다.",
+    "알림 설정 탭에는 기존 알림톡 · LMS, 발주/재고 · 유효기한 알림을 둡니다. 토글은 평소 비활성화 상태이고, 수정 버튼을 누르면 켜고 끌 수 있으며 저장 시 반영됩니다."
+  ]],
+  login: ["로그인", ["빔스 기관 계정은 아이디·비밀번호 다음 이메일 인증으로 이어집니다.", "목업 인증번호는 483921입니다."]],
+  otp: ["이메일 인증", ["인증번호는 6자리이며 5분간 유효합니다.", "재발송은 60초 간격으로 3회까지입니다.", "'30일 동안 인증 유지하기'를 선택하면 30일간 인증을 유지하고, 30일이 지나면 재인증이 필요합니다.", "5회 실패 시 10분간 접근할 수 없습니다."]],
+  lock: ["인증 실패 잠금", ["인증번호 5회 실패 시 10분간 접근할 수 없습니다.", "남은 시간(10분)이 지나면 자동으로 로그인 페이지로 이동합니다.", "RTMC가 계정 관리 > 계정 상세 > 로그인 기록 탭에서 잠금을 초기화할 수 있습니다."]],
+  grace: ["이메일 없음 · 유예", ["이메일이 없는 계정은 1개월간 로그인을 허용하고 등록을 안내합니다.", "이메일 등록하기를 누르면 계정 프로필로 이동해 이메일을 등록하고, 로그인 하기를 누르면 유예 기간 동안 그대로 로그인합니다."]],
+  block: ["이메일 없음 · 차단", ["1개월이 지나면 이메일이 없는 계정은 로그인할 수 없습니다.", "등록이 필요하면 RTMC에 요청합니다."]],
+  mail: ["인증번호 메일", ["제목은 [빔스] 로그인 인증번호입니다.", "본문은 빔스 로고 · '인증번호를 확인해주세요.' · 인증번호(크게) · 발급 안내 순서로 구성합니다.", "인증번호는 이메일 발송 시점으로부터 5분간 유효하며, 본인이 요청하지 않았다면 비밀번호 변경을 안내합니다."]],
+  deny: ["미등록 기기 차단", ["계정에 등록되지 않은 IMEI는 미란다 로그인을 차단합니다.", "등록은 빔스 설정 > 기기 설정 탭에서 합니다."]],
+  plan: ["진행 방향", ["사전 테스트를 먼저 진행합니다.", "적용 시작 1주 전에 기관에 공지합니다.", "관리자 계정은 이메일 인증을 1회 마치면 갱신 없이 계속 사용하며, 인증 완료 시 관리자 계정 인증 모달을 보여줍니다.", "CMS는 RTMC 관리자 계정 화면입니다. 빔스와 같은 이메일 인증을 적용할지는 아직 결정하지 않았습니다."]]
+};
+
+const main = document.getElementById("main");
+const criteriaEl = document.getElementById("criteria");
+const toast = document.getElementById("toast");
+let scene = "", otpLeft = 300, resendLeft = 60, resendCount = 0, otpWrong = 0, tick;
+function showToast(msg) {
+  toast.textContent = msg; toast.classList.add("on");
+  clearTimeout(showToast._t); showToast._t = setTimeout(() => toast.classList.remove("on"), 1800);
+}
+function pad(n) { return String(n).padStart(2, "0"); }
+function bind() {
+  clearInterval(tick);
+  renderAccountRows();
+  const hospital = document.getElementById("hospital-form");
+  if (hospital) hospital.addEventListener("submit", (e) => { e.preventDefault(); showToast("병원 프로필을 저장했습니다."); });
+  bindProfileSlot();
+  const staffOpen = document.getElementById("staff-open");
+  if (staffOpen) staffOpen.addEventListener("click", openStaff);
+  const profile = document.getElementById("profile-form");
+  if (profile) profile.addEventListener("submit", (e) => { e.preventDefault(); showToast("인증된 이메일만 저장됩니다."); });
+  const pwChange = document.getElementById("pw-change");
+  if (pwChange) pwChange.addEventListener("click", openPasswordChange);
+  const account = document.getElementById("account-form");
+  if (account) account.addEventListener("submit", (e) => { e.preventDefault(); showToast("nurse.kim@" + domain + " 계정을 등록했습니다."); });
+  const dup = document.getElementById("dup");
+  if (dup) dup.addEventListener("click", () => showToast("사용할 수 있는 아이디입니다."));
+  const cancel = document.getElementById("cancel");
+  if (cancel) cancel.addEventListener("click", () => showToast("변경 내용을 취소했습니다."));
+  const login = document.getElementById("login-form");
+  if (login) login.addEventListener("submit", (e) => { e.preventDefault(); go("otp"); });
+  const otpForm = document.getElementById("otp-form");
+  if (otpForm) {
+    const inputs = [...document.querySelectorAll(".otp input")];
+    const ok = document.getElementById("otp-ok");
+    const msg = document.getElementById("otp-msg");
+    const resend = document.getElementById("resend");
+    const code = () => inputs.map(el => el.value).join("");
+    const sync = () => { ok.disabled = code().length !== 6 || otpLeft <= 0; };
+    inputs.forEach((el, i) => {
+      el.addEventListener("input", () => {
+        el.value = el.value.replace(/\D/g, "").slice(-1);
+        if (el.value && inputs[i + 1]) inputs[i + 1].focus();
+        sync();
+      });
+    });
+    tick = setInterval(() => {
+      if (otpLeft > 0) otpLeft -= 1;
+      document.getElementById("timer").textContent = "남은 시간 " + pad(Math.floor(otpLeft / 60)) + ":" + pad(otpLeft % 60);
+      if (resendLeft > 0) { resendLeft -= 1; resend.disabled = true; resend.textContent = "재발송 00:" + pad(resendLeft); }
+      else if (resendCount >= 3) { resend.disabled = true; resend.textContent = "재발송 3회 완료"; }
+      else { resend.disabled = false; resend.textContent = "재발송"; }
+    }, 1000);
+    resend.addEventListener("click", () => {
+      if (resendCount >= 3) return;
+      resendCount += 1; resendLeft = 60; otpLeft = 300; otpWrong = 0;
+      inputs.forEach(el => { el.value = ""; });
+      msg.innerHTML = '<div class="note">인증번호를 다시 보냈습니다. (' + resendCount + "/3)</div>";
+      sync();
+    });
+    otpForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (code() === "483921") { showToast(document.getElementById("remember").checked ? "30일 동안 인증을 유지합니다." : "로그인되었습니다."); return; }
+      otpWrong += 1;
+      if (otpWrong >= 5) { go("lock"); return; }
+      msg.innerHTML = '<div class="warn">인증번호가 올바르지 않습니다. (' + otpWrong + "/5)</div>";
+    });
+  }
+  const later = document.getElementById("later");
+  if (later) later.addEventListener("click", () => showToast("유예 기간 동안 로그인되었습니다."));
+  const graceEmail = document.getElementById("grace-email");
+  if (graceEmail) graceEmail.addEventListener("click", () => { go("profile"); showToast("계정 프로필에서 이메일을 등록해 주세요."); });
+  document.querySelectorAll("[data-pick]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-pick]").forEach(el => el.classList.remove("on"));
+    btn.classList.add("on");
+    showToast("선택만 표시했습니다. 아직 확정은 아닙니다.");
+  }));
+  const adminPreview = document.getElementById("admin-preview");
+  if (adminPreview) adminPreview.addEventListener("click", openAdminVerified);
+  document.querySelectorAll("[data-inner]").forEach(btn => btn.addEventListener("click", () => go(btn.dataset.inner)));
+  document.querySelectorAll("[data-open]").forEach(btn => btn.addEventListener("click", () => openAccount(btn.dataset.open)));
+  const createAccount = document.getElementById("create-account");
+  if (createAccount) createAccount.addEventListener("click", openCreate);
+  const search = document.getElementById("search");
+  if (search) search.addEventListener("click", () => showToast("검색 결과입니다. (목업)"));
+  const imei = document.getElementById("imei-form");
+  if (imei) imei.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById("imei-name");
+    const imeiInput = document.getElementById("imei");
+    const name = nameInput.value.trim();
+    const value = imeiInput.value.trim();
+    if (!name) { showToast("기기명을 입력해 주세요."); return; }
+    if (!/^\d{15}$/.test(value)) { showToast("IMEI 15자리를 입력해 주세요."); return; }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td></td><td>${value}</td><td class="imei-del-col"><button type="button" class="imei-del">삭제</button></td>`;
+    tr.firstChild.textContent = name;
+    document.querySelector("#imei-table tbody").appendChild(tr);
+    nameInput.value = "";
+    imeiInput.value = "";
+    showToast("태블릿을 등록했습니다.");
+  });
+  const imeiTable = document.getElementById("imei-table");
+  if (imeiTable) imeiTable.addEventListener("click", (e) => {
+    const del = e.target.closest(".imei-del");
+    if (!del) return;
+    del.closest("tr").remove();
+    showToast("기기를 삭제했습니다.");
+  });
+}
+const accountDetails = {
+  kahpdoc1: { id: "kahpdoc1", type: "병원", name: "건강관리협회강원지부", phone: "010-5914-4044", role: "병원 의사", org: "한국건강관리협회 건강증진의원 강원지부", email: "kahp.doc", dept: "진료과", withdrawn: "N", locked: true },
+  rtmcdoc1: { id: "rtmcdoc1", type: "병원", name: "111의원", phone: "010-9852-8040", role: "병원 의사", org: "111의원", email: "rtmc.doc", dept: "가정의학과", withdrawn: "N", locked: false },
+  koidoc: { id: "koidoc", type: "병원", name: "고의사", phone: "010-5133-8179", role: "병원 의사", org: "111의원", email: "koi.doc", dept: "내과", withdrawn: "N", locked: false },
+  com_03: { id: "com_03", type: "유통사", name: "직원", phone: "010-0000-0000", role: "유통사 직원", org: "테스트유통A", email: "com03", dept: "영업팀", withdrawn: "N", locked: false },
+  ABC: { id: "ABC", type: "유통사", name: "직원", phone: "010-0000-0000", role: "유통사 직원", org: "테스트유통B", email: "abc", dept: "", withdrawn: "N", locked: false }
+};
+function lockMark(locked) {
+  return locked ? '<span class="tag bad">잠금</span>' : '<span class="tag ok">사용</span>';
+}
+function renderAccountRows() {
+  const body = document.getElementById("account-rows");
+  if (!body) return;
+  body.innerHTML = Object.values(accountDetails).map(d => `<tr><td>${d.type}</td><td>${d.org}</td><td>${d.role}</td><td>${d.id}</td><td>${d.phone}</td><td>${d.withdrawn}</td><td class="lock-col">${lockMark(d.locked)}</td><td><button class="icon-edit" type="button" data-open="${d.id}" aria-label="상세">✎</button></td></tr>`).join("");
+}
+function openCreate() {
+  const modal = document.getElementById("account-modal");
+  if (!modal) return;
+  modal.innerHTML = `<form class="modal" id="account-form" role="dialog" aria-label="계정 생성">
+    <div class="modal-scroll">
+      <h3>계정 생성</h3>
+      <div class="modal-card">
+        ${row("아이디 <span class='req'>*</span>", `<div class="inline"><input type="text" placeholder="아이디를 입력해주세요."><button class="btn" type="button" id="dup">중복체크</button></div>`)}
+        ${row("비밀번호 <span class='req'>*</span>", `<input type="password" placeholder="비밀번호를 입력해주세요.">`)}
+        ${row("비밀번호 확인 <span class='req'>*</span>", `<input type="password" placeholder="비밀번호를 다시 입력해주세요.">`)}
+        ${row("이름", `<input type="text" placeholder="이름을 입력해주세요.">`)}
+        ${row("전화번호", `<input type="text" placeholder="전화번호를 입력해주세요.">`)}
+        ${row(`이메일 <span class="req">*</span>`, `<div class="inline"><input type="text" value="nurse.kim" aria-label="이메일 아이디"><span class="at">@</span><div class="domain-fixed">${domain}</div></div><p class="hint">도메인은 병원 프로필에 등록된 값으로 고정됩니다.</p>`)}
+        ${row("권한 설정 <span class='req'>*</span>", `<select><option>역할을 선택해주세요.</option><option>병원 사용자</option></select>`)}
+        ${row("기관명 <span class='req'>*</span>", `<div class="inline"><input type="text" placeholder="기관을 선택해주세요." readonly><button class="btn" type="button">선택</button></div>`)}
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn round soft" type="button" id="modal-close">취소</button><button class="btn round fill" type="submit">등록</button></div>
+  </form>`;
+  modal.classList.add("on");
+  document.getElementById("modal-close").addEventListener("click", () => modal.classList.remove("on"));
+  document.getElementById("dup").addEventListener("click", () => showToast("사용할 수 있는 아이디입니다."));
+  document.getElementById("account-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    modal.classList.remove("on");
+    showToast("nurse.kim@" + domain + " 계정을 등록했습니다.");
+  });
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("on"); });
+}
+function openAccount(id) {
+  const d = accountDetails[id];
+  const modal = document.getElementById("account-modal");
+  if (!d || !modal) return;
+  const logs = [
+    ["2026.10.13 09:12", "성공", "10.20.1.14", "Chrome · Windows"],
+    ["2026.10.13 09:02", "실패", "10.20.1.14", "Chrome · Windows"],
+    ["2026.10.12 18:20", "성공", "211.234.10.8", "Edge · Windows"],
+    ["2026.10.11 08:47", "성공", "10.20.1.14", "Chrome · Windows"],
+    ["2026.10.10 17:30", "실패", "211.234.10.8", "Edge · Windows"],
+    ["2026.10.10 09:05", "성공", "10.20.1.14", "Chrome · Windows"]
+  ];
+  const fails = d.locked
+    ? ["09:41", "09:42", "09:43", "09:44", "09:45"].map((time, i) => `<tr><td>2026.10.13 ${time}</td><td>${i + 1}회</td><td>인증번호 불일치</td><td>10.20.1.14</td></tr>`).join("")
+    : "";
+  const failBlock = d.locked
+    ? `<div class="warn">인증번호 5회 실패로 10분간 접근할 수 없습니다. 남은 시간 09:40</div>
+       <div class="log-scroll"><table><thead><tr><th>일시</th><th>횟수</th><th>사유</th><th>IP</th></tr></thead><tbody>${fails}</tbody></table></div>`
+    : `<p class="hint">인증번호 5회 실패 내역이 없습니다.</p>`;
+  if (!d.alerts) d.alerts = { talk: true, lms: false, stock: true, expiry: false };
+  let editing = false;
+  let alertDraft = { ...d.alerts };
+  const toggle = (key, label) => `<div class="notice-row"><span>${label}</span><button type="button" class="switch${alertDraft[key] ? " on" : ""}" data-alert="${key}" role="switch" aria-checked="${alertDraft[key]}" aria-label="${label}"${editing ? "" : " disabled"}><i></i></button></div>`;
+  const alertHtml = () => `<div class="modal-card">
+          <div class="subhead">알림 설정</div>
+          ${toggle("talk", "알림톡")}
+          ${toggle("lms", "LMS")}
+          <div class="subhead">알림 목록</div>
+          ${toggle("stock", "발주/재고 알림")}
+          ${toggle("expiry", "유효기한 알림")}
+        </div>`;
+  const off = () => (editing ? "" : " disabled");
+  function infoHtml() {
+    const roles = roleOptions.includes(d.role) ? roleOptions : [d.role, ...roleOptions];
+    return `<div class="modal-card">
+          ${row("아이디", `<input type="text" value="${d.id}" disabled>`)}
+          ${row("비밀번호", `<input type="password" id="acc-pw" placeholder="비밀번호를 입력해주세요."${off()}>`)}
+          ${row("비밀번호 확인", `<input type="password" id="acc-pw2" placeholder="비밀번호를 다시 입력해주세요."${off()}>`)}
+          ${row("이름", `<input type="text" id="acc-name" value="${d.name}" placeholder="이름을 입력해주세요."${off()}>`)}
+          ${row("전화번호", `<input type="text" id="acc-phone" value="${d.phone}" placeholder="전화번호를 입력해주세요."${off()}>`)}
+          ${row(`이메일 <span class="req">*</span>`, `<div class="inline"><input type="text" id="acc-email" value="${d.email}" aria-label="이메일 아이디" placeholder="이메일 아이디"${off()}><span class="at">@</span><div class="domain-fixed">${domain}</div></div><p class="hint">도메인은 병원 프로필에 등록된 값으로 고정됩니다.</p>`)}
+          ${row("부서명", `<input type="text" id="acc-dept" value="${d.dept}" placeholder="부서명을 입력해주세요."${off()}>`)}
+        </div>
+        <div class="modal-card">
+          ${row("권한 설정", `<select id="acc-role" aria-label="권한 설정"${off()}>${roles.map(r => `<option${r === d.role ? " selected" : ""}>${r}</option>`).join("")}</select>`)}
+          ${row("기관명", `<input type="text" value="${d.org}" disabled>`)}
+        </div>`;
+  }
+  modal.innerHTML = `<div class="modal detail" role="dialog" aria-label="계정 상세">
+    <div class="modal-head">
+      <h3>계정 상세</h3>
+      <div class="modal-tabs">
+        <button type="button" data-modal-tab="info" class="on">계정정보</button>
+        <button type="button" data-modal-tab="logs">로그인 기록</button>
+        <button type="button" data-modal-tab="alert">알림 설정</button>
+      </div>
+    </div>
+    <div class="modal-scroll">
+      <div class="modal-panel on" data-panel="info" id="acc-info">${infoHtml()}</div>
+      <div class="modal-panel" data-panel="logs">
+        <div class="modal-card">
+          <div class="subhead">로그인 기록</div>
+          <div class="log-scroll"><table><thead><tr><th>일시</th><th>결과</th><th>IP</th><th>접속 환경</th></tr></thead>
+          <tbody>${logs.map(r => "<tr>" + r.map(c => "<td>" + c + "</td>").join("") + "</tr>").join("")}</tbody></table></div>
+        </div>
+        <div class="modal-card">
+          <div class="subhead-row"><div class="subhead">인증번호 실패</div>${d.locked ? '<button class="btn fill slim" type="button" id="modal-reset">초기화</button>' : ""}</div>
+          ${failBlock}
+        </div>
+      </div>
+      <div class="modal-panel" data-panel="alert" id="acc-alert">${alertHtml()}</div>
+    </div>
+    <div class="modal-foot"><button class="btn round soft" type="button" id="modal-close">취소</button><button class="btn round" type="button" id="modal-save">수정</button></div>
+  </div>`;
+  modal.classList.add("on");
+  modal.querySelectorAll("[data-modal-tab]").forEach(btn => btn.addEventListener("click", () => {
+    modal.querySelectorAll("[data-modal-tab]").forEach(el => el.classList.toggle("on", el === btn));
+    modal.querySelectorAll("[data-panel]").forEach(el => el.classList.toggle("on", el.dataset.panel === btn.dataset.modalTab));
+    modal.querySelector(".modal-scroll").scrollTop = 0;
+  }));
+  const saveBtn = document.getElementById("modal-save");
+  const alertPanel = document.getElementById("acc-alert");
+  alertPanel.addEventListener("click", (e) => {
+    const sw = e.target.closest(".switch");
+    if (!sw || sw.disabled) return;
+    const key = sw.dataset.alert;
+    alertDraft[key] = !alertDraft[key];
+    sw.classList.toggle("on", alertDraft[key]);
+    sw.setAttribute("aria-checked", String(alertDraft[key]));
+  });
+  const setEditing = (on) => {
+    editing = on;
+    alertDraft = { ...d.alerts };
+    document.getElementById("acc-info").innerHTML = infoHtml();
+    alertPanel.innerHTML = alertHtml();
+    saveBtn.textContent = on ? "저장" : "수정";
+    saveBtn.classList.toggle("fill", on);
+  };
+  document.getElementById("modal-close").addEventListener("click", () => {
+    if (editing) setEditing(false);
+    else modal.classList.remove("on");
+  });
+  saveBtn.addEventListener("click", () => {
+    if (!editing) {
+      setEditing(true);
+      if (document.getElementById("acc-info").classList.contains("on")) document.getElementById("acc-name").focus();
+      return;
+    }
+    const val = (fid) => document.getElementById(fid).value.trim();
+    const pw = document.getElementById("acc-pw").value;
+    const pw2 = document.getElementById("acc-pw2").value;
+    if (pw !== pw2) return showToast("비밀번호가 일치하지 않습니다.");
+    if (!val("acc-name")) return showToast("이름을 입력해주세요.");
+    if (!val("acc-email")) return showToast("이메일을 입력해주세요.");
+    Object.assign(d, { name: val("acc-name"), phone: val("acc-phone"), email: val("acc-email"), dept: val("acc-dept"), role: val("acc-role"), alerts: { ...alertDraft } });
+    setEditing(false);
+    renderAccountRows();
+    showToast("계정 정보를 저장했습니다.");
+  });
+  const reset = document.getElementById("modal-reset");
+  if (reset) reset.addEventListener("click", () => { d.locked = false; modal.classList.remove("on"); renderAccountRows(); showToast(d.id + " 계정의 로그인 잠금을 초기화했습니다."); });
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("on"); });
+}
+function go(id) {
+  if (id === "otp" && scene !== "otp") { otpLeft = 300; resendLeft = 60; resendCount = 0; otpWrong = 0; }
+  document.getElementById("confirm-modal").classList.remove("on");
+  scene = id;
+  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.toggle("on", btn.dataset.scene === id));
+  const navId = id === "hospital" || id === "profile" || id === "imei" ? "setting" : id === "account" ? "accounts" : id;
+  document.querySelectorAll(".rail [data-nav]").forEach(btn => btn.classList.toggle("on", btn.dataset.nav === navId));
+  const [title, items] = criteria[id];
+  criteriaEl.innerHTML = '<div class="kicker">추가 기능</div><h2>' + title + "</h2><ul>" + items.map(item => "<li>" + item + "</li>").join("") + "</ul>";
+  main.innerHTML = scenes[id]();
+  bind();
+}
+document.querySelectorAll(".tabs button").forEach(btn => btn.addEventListener("click", () => go(btn.dataset.scene)));
+document.querySelectorAll(".rail [data-nav]").forEach(btn => btn.addEventListener("click", () => {
+  if (btn.dataset.nav === "setting") go("hospital");
+  else if (btn.dataset.nav === "accounts") go("accounts");
+  else showToast("이 목업에서는 설정과 계정 관리를 확인합니다.");
+}));
+go("hospital");
+</script>
+</body>
+</html>

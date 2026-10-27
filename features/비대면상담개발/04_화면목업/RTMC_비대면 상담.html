@@ -1,0 +1,1394 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>비대면 상담 (Telemedicine)</title>
+<style>
+  :root {
+    /* ── dak design tokens (color-style.css) ───────────────────────── */
+    --dak-color-primary-5: #ffe6f0;
+    --dak-color-primary-10: #fbd5e2;
+    --dak-color-primary-20: #f5b4c8;
+    --dak-color-primary-30: #f08caf;
+    --dak-color-primary-50: #e62878;
+    --dak-color-primary-60: #c82861;
+
+    --dak-color-secondary-5: #e6e6ff;
+    --dak-color-secondary-10: #dcd8ff;
+    --dak-color-secondary-20: #c8beff;
+    --dak-color-secondary-30: #a098f5;
+    --dak-color-secondary-40: #7873eb;
+    --dak-color-secondary-50: #373291;
+
+    --dak-color-gray-0: #ffffff;
+    --dak-color-gray-5: #f8f9fa;
+    --dak-color-gray-10: #e9ecef;
+    --dak-color-gray-20: #dee2e6;
+    --dak-color-gray-30: #ced4da;
+    --dak-color-gray-40: #adb5bd;
+    --dak-color-gray-50: #6c757d;
+    --dak-color-gray-60: #495057;
+    --dak-color-gray-80: #212529;
+    --dak-color-gray-90: #16181b;
+
+    --dak-color-danger-5: #fdeded;
+    --dak-color-danger-10: #fbdada;
+    --dak-color-danger-20: #f7b5b5;
+    --dak-color-danger-30: #f39090;
+    --dak-color-danger-50: #e53f3f;
+    --dak-color-danger-60: #bd2c2c;
+
+    --dak-color-information-5: #e6e6ff;
+    --dak-color-information-10: #dcd8ff;
+    --dak-color-information-20: #c8beff;
+    --dak-color-information-30: #a098f5;
+    --dak-color-information-50: #7873eb;
+    --dak-color-information-60: #5a55c4;
+
+    --dak-color-warning-5: #fff8eb;
+    --dak-color-warning-10: #ffefd1;
+    --dak-color-warning-20: #ffe0a3;
+    --dak-color-warning-30: #ffc95c;
+    --dak-color-warning-50: #fdb02f;
+    --dak-color-warning-60: #e09a1a;
+
+    --dak-color-success-5: #eafbec;
+    --dak-color-success-10: #d5f7d8;
+    --dak-color-success-20: #abefb1;
+    --dak-color-success-30: #81e78a;
+    --dak-color-success-50: #52cd57;
+    --dak-color-success-60: #42a446;
+
+    --dak-typo-font-family: "SpoqaHanSansNeo", "Spoqa Han Sans Neo",
+      "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+      "Malgun Gothic", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    background: var(--dak-color-gray-5);
+    font-family: var(--dak-typo-font-family);
+    color: var(--dak-color-gray-80);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { font-family: inherit; }
+
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ── CardWrapper (bg-white rounded-lg border border-gray-200 p-6) ── */
+  .card-wrapper {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  /* ── Toolbar ───────────────────────────────────────────────────── */
+  .toolbar {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-h44 {
+    width: 100%;
+    height: 44px;
+    padding: 0 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .btn-xs {
+    min-width: 3rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    width: auto;
+  }
+  .btn-teriary {
+    background: var(--dak-color-gray-0);
+    color: var(--dak-color-gray-90);
+    border-color: var(--dak-color-gray-40);
+  }
+  .btn-teriary:hover { background: var(--dak-color-gray-5); }
+  .btn-secondary {
+    background: var(--dak-color-gray-0);
+    color: var(--dak-color-primary-50);
+    border-color: var(--dak-color-primary-50);
+  }
+  .btn-secondary:hover { background: var(--dak-color-primary-5); }
+  .btn-success-secondary {
+    background: var(--dak-color-gray-0);
+    color: var(--dak-color-success-50);
+    border-color: var(--dak-color-success-50);
+  }
+  .btn-success-secondary:hover { background: var(--dak-color-success-5); }
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--dak-color-primary-10);
+  }
+
+  /* ── KPI cards ─────────────────────────────────────────────────── */
+  .kpi-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .kpi-list > li { min-width: 0; }
+
+  .card-surface {
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid var(--dak-color-gray-10);
+    background: var(--dak-color-gray-0);
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  .card-interactive { cursor: pointer; }
+  .card-interactive:hover {
+    border-color: var(--dak-color-gray-20);
+    background: var(--dak-color-gray-5);
+  }
+
+  .kpi-card {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    text-align: left;
+  }
+  .kpi-head {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .kpi-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--dak-color-gray-60);
+  }
+  .kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--dak-color-gray-80);
+  }
+  .kpi-unit {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--dak-color-gray-50);
+  }
+  .kpi-foot {
+    margin-top: auto;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+  }
+  .kpi-foot.has-divider { border-top: 1px solid var(--dak-color-gray-10); }
+  .kpi-caption-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .kpi-caption {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dak-color-gray-50);
+  }
+  .kpi-percent {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dak-color-gray-80);
+  }
+  .progress-track {
+    height: 8px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--dak-color-gray-10);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--dak-color-primary-50);
+  }
+
+  /* ── Badge (appearance="fill-soft", size="s") ──────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    min-height: 26px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .badge-default { background: var(--dak-color-gray-10); color: var(--dak-color-gray-60); }
+  .badge-primary { background: var(--dak-color-primary-5); color: var(--dak-color-primary-50); }
+  .badge-secondary { background: var(--dak-color-secondary-5); color: var(--dak-color-secondary-50); }
+  .badge-information { background: var(--dak-color-information-5); color: var(--dak-color-information-60); }
+  .badge-success { background: var(--dak-color-success-5); color: var(--dak-color-success-60); }
+  .badge-warning { background: var(--dak-color-warning-5); color: var(--dak-color-warning-60); }
+  .badge-danger { background: var(--dak-color-danger-5); color: var(--dak-color-danger-60); }
+
+  /* ── Section ───────────────────────────────────────────────────── */
+  .section {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .section-plain {
+    padding-top: 20px;
+    border-top: 1px solid var(--dak-color-gray-10);
+  }
+  .section-card {
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid var(--dak-color-gray-10);
+    background: var(--dak-color-gray-0);
+    padding: 16px;
+  }
+  .section-head {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .section-heading {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .section-title {
+    margin: 0;
+    word-break: keep-all;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: -0.2px;
+    color: var(--dak-color-gray-80);
+  }
+  .section-desc {
+    word-break: keep-all;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dak-color-gray-60);
+  }
+  .count-pill {
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: var(--dak-color-primary-5);
+    padding: 4px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--dak-color-primary-60);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Pipeline ──────────────────────────────────────────────────── */
+  .pipeline {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .pipeline-steps {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .step-connector {
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: var(--dak-color-gray-30);
+  }
+  .step-connector svg {
+    height: 16px;
+    width: 16px;
+    transform: rotate(90deg);
+  }
+  .pipeline-cell {
+    box-sizing: border-box;
+    display: flex;
+    min-width: 0;
+    flex-grow: 1;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--dak-color-gray-10);
+    background: var(--dak-color-gray-0);
+    padding: 14px 16px;
+    text-align: left;
+    transition: background-color 0.15s;
+  }
+  .pipeline-cell:hover { background: var(--dak-color-gray-5); }
+  .step-chip {
+    order: 1;
+    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+  }
+  .pipeline-count {
+    order: 3;
+    margin-left: auto;
+    display: flex;
+    flex-shrink: 0;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .pipeline-count b {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dak-color-gray-80);
+    font-variant-numeric: tabular-nums;
+  }
+  .pipeline-count span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--dak-color-gray-50);
+  }
+  .pipeline-label {
+    order: 2;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .end-divider {
+    height: 1px;
+    width: 100%;
+    background: var(--dak-color-gray-20);
+  }
+  .pipeline-ends {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .end-cell {
+    box-sizing: border-box;
+    display: flex;
+    min-width: 0;
+    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--dak-color-gray-10);
+    background: var(--dak-color-gray-0);
+    padding: 14px 16px;
+    text-align: left;
+    transition: background-color 0.15s;
+  }
+  .end-cell:hover { background: var(--dak-color-gray-5); }
+  .end-cell-left {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* tone: chip (bg + text) */
+  .chip-primary { background: var(--dak-color-primary-5); color: var(--dak-color-primary-60); border-color: var(--dak-color-primary-30); }
+  .chip-secondary { background: var(--dak-color-secondary-5); color: var(--dak-color-secondary-50); border-color: var(--dak-color-secondary-30); }
+  .chip-information { background: var(--dak-color-information-5); color: var(--dak-color-information-60); border-color: var(--dak-color-information-30); }
+  .chip-success { background: var(--dak-color-success-5); color: var(--dak-color-success-60); border-color: var(--dak-color-success-30); }
+  .chip-warning { background: var(--dak-color-warning-5); color: var(--dak-color-warning-60); border-color: var(--dak-color-warning-30); }
+  .chip-danger { background: var(--dak-color-danger-5); color: var(--dak-color-danger-60); border-color: var(--dak-color-danger-30); }
+  .chip-default { background: var(--dak-color-gray-10); color: var(--dak-color-gray-60); border-color: var(--dak-color-gray-30); }
+
+  /* tone: text */
+  .text-primary { color: var(--dak-color-primary-60); }
+  .text-secondary { color: var(--dak-color-secondary-50); }
+  .text-information { color: var(--dak-color-information-60); }
+  .text-success { color: var(--dak-color-success-60); }
+  .text-warning { color: var(--dak-color-warning-60); }
+  .text-danger { color: var(--dak-color-danger-60); }
+  .text-default { color: var(--dak-color-gray-80); }
+
+  /* tone: bar */
+  .bar-primary { background: var(--dak-color-primary-50); }
+  .bar-secondary { background: var(--dak-color-secondary-40); }
+  .bar-information { background: var(--dak-color-information-50); }
+  .bar-success { background: var(--dak-color-success-60); }
+  .bar-warning { background: var(--dak-color-warning-50); }
+  .bar-danger { background: var(--dak-color-danger-50); }
+  .bar-default { background: var(--dak-color-gray-40); }
+
+  /* ── 2-column grid (AI 분석 / 상담 검토 필요) ──────────────────── */
+  .split-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--dak-color-gray-10);
+  }
+
+  /* ── Table (dak Table / MRT) ───────────────────────────────────── */
+  .table-scroll {
+    min-width: 0;
+    overflow-x: auto;
+  }
+  table.dak-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.dak-table th {
+    background: var(--dak-color-gray-5);
+    color: var(--dak-color-gray-90);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    padding: 8px 0;
+    text-align: center;
+    border-top: 1px solid var(--dak-color-gray-20);
+    border-bottom: 1px solid var(--dak-color-gray-20);
+  }
+  table.dak-table td {
+    height: 56px;
+    padding: 10px 16px;
+    text-align: center;
+    color: var(--dak-color-gray-90);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 26px;
+    border-bottom: 1px solid var(--dak-color-gray-20);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: keep-all;
+  }
+  table.dak-table tbody tr { cursor: pointer; }
+  table.dak-table tbody tr:hover td { background: var(--dak-color-gray-5); }
+  .cell-strong { font-weight: 700; }
+  .cell-muted { color: var(--dak-color-gray-60); }
+  .cell-center-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gauge {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+  .gauge-track {
+    height: 8px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--dak-color-gray-20);
+  }
+  .gauge-fill {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+  }
+  .gauge-value {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: var(--dak-color-gray-80);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .table-block {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Pagination ────────────────────────────────────────────────── */
+  .pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pagination {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: auto auto auto;
+    gap: 10px;
+    justify-content: start;
+  }
+  .edge-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .page-move {
+    all: unset;
+    display: flex;
+    align-items: center;
+    padding: 10px 8px;
+    box-sizing: border-box;
+    height: 40px;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 24px;
+    color: var(--dak-color-primary-50);
+    cursor: pointer;
+  }
+  .page-move.disabled {
+    color: var(--dak-color-gray-40);
+    cursor: default;
+  }
+  .page-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .page-item {
+    all: unset;
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 26px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--dak-color-gray-80);
+  }
+  .page-item:hover { background: var(--dak-color-primary-5); }
+  .page-item.active {
+    background: var(--dak-color-gray-0);
+    border-color: var(--dak-color-primary-50);
+    color: var(--dak-color-primary-50);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  /* ── Review required (상담 검토 필요) ──────────────────────────── */
+  .review-wrap {
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+  }
+  .review-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .review-card {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  .review-main {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  .review-title-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+  .review-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dak-color-gray-80);
+  }
+  .review-meta {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dak-color-gray-50);
+  }
+  .review-note {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    color: var(--dak-color-gray-60);
+  }
+  .review-side {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .review-time {
+    font-size: 14px;
+    color: var(--dak-color-gray-40);
+    font-variant-numeric: tabular-nums;
+  }
+  .review-fade { display: none; }
+
+  /* ── Breakpoints ───────────────────────────────────────────────── */
+  @media (min-width: 640px) {
+    .kpi-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pipeline-ends { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (min-width: 768px) {
+    .toolbar {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .btn-h44 { width: auto; }
+    .section-desc { font-size: 16px; }
+    .step-connector { display: none; }
+    .pipeline-steps {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .pipeline-cell {
+      flex-basis: 120px;
+      flex-direction: column;
+      padding: 16px;
+      text-align: center;
+    }
+    .pipeline-count {
+      order: 2;
+      margin-left: 0;
+    }
+    .pipeline-label { order: 3; }
+    .pipeline-count b { font-size: 24px; }
+  }
+
+  @media (min-width: 1024px) {
+    .section-title { font-size: 20px; }
+    .section-card { padding: 20px; }
+  }
+
+  @media (min-width: 1280px) {
+    .kpi-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .split-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .step-connector {
+      display: flex;
+      width: auto;
+    }
+    .step-connector svg { transform: none; }
+    .review-wrap { flex: 1; }
+    .review-list {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      padding-bottom: 20px;
+      padding-right: 4px;
+    }
+    .review-fade {
+      display: block;
+      pointer-events: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 32px;
+      background: linear-gradient(to top, var(--dak-color-gray-0), transparent);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="card-wrapper">
+
+  <!-- ══ Toolbar ══════════════════════════════════════════════════ -->
+  <div class="toolbar">
+    <button type="button" id="telemedicine-schedule" class="btn btn-h44 btn-teriary">상담 일정 보기</button>
+    <button type="button" id="telemedicine-enter-room" class="btn btn-h44 btn-secondary">비대면 상담 접속하기</button>
+  </div>
+
+  <!-- ══ KPI cards ════════════════════════════════════════════════ -->
+  <ul class="kpi-list">
+    <li>
+      <button type="button" class="kpi-card card-surface card-interactive">
+        <div class="kpi-head">
+          <span class="kpi-label">상담 필요</span>
+          <span class="badge badge-danger">Level 4</span>
+        </div>
+        <div class="kpi-value-row">
+          <b class="kpi-value tnum">2</b>
+          <span class="kpi-unit">건</span>
+        </div>
+        <div class="kpi-foot has-divider">
+          <div class="kpi-caption-row">
+            <span class="kpi-caption">고위험 자가체크 · 비대면 상담 추천</span>
+          </div>
+        </div>
+      </button>
+    </li>
+    <li>
+      <button type="button" class="kpi-card card-surface card-interactive">
+        <div class="kpi-head">
+          <span class="kpi-label">상담 권고</span>
+          <span class="badge badge-warning">Level 3</span>
+        </div>
+        <div class="kpi-value-row">
+          <b class="kpi-value tnum">3</b>
+          <span class="kpi-unit">건</span>
+        </div>
+        <div class="kpi-foot has-divider">
+          <div class="kpi-caption-row">
+            <span class="kpi-caption">주의 자가체크 · 비대면 상담 추천</span>
+          </div>
+        </div>
+      </button>
+    </li>
+    <li>
+      <button type="button" class="kpi-card card-surface card-interactive">
+        <div class="kpi-head">
+          <span class="kpi-label">오늘 상담 예정</span>
+        </div>
+        <div class="kpi-value-row">
+          <b class="kpi-value tnum">20</b>
+          <span class="kpi-unit">건</span>
+        </div>
+        <div class="kpi-foot has-divider">
+          <div class="kpi-caption-row">
+            <span class="kpi-caption">예약확정 · 상담실 대기</span>
+          </div>
+        </div>
+      </button>
+    </li>
+    <li>
+      <button type="button" class="kpi-card card-surface card-interactive">
+        <div class="kpi-head">
+          <span class="kpi-label">오늘 상담 완료</span>
+        </div>
+        <div class="kpi-value-row">
+          <b class="kpi-value tnum">7</b>
+          <span class="kpi-unit tnum">/ 20건</span>
+        </div>
+        <div class="kpi-foot">
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 35%"></div>
+          </div>
+          <div class="kpi-caption-row">
+            <span class="kpi-caption">진행률</span>
+            <span class="kpi-percent tnum">35%</span>
+          </div>
+        </div>
+      </button>
+    </li>
+  </ul>
+
+  <!-- ══ 비대면 상담 현황 (Pipeline) ═════════════════════════════════ -->
+  <section class="section section-plain">
+    <div class="section-head">
+      <div class="section-heading">
+        <h3 class="section-title">비대면 상담 현황</h3>
+        <span class="section-desc">상담 요청부터 종료까지의 단계별 건수입니다.</span>
+      </div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-steps">
+        <button type="button" class="pipeline-cell">
+          <span class="step-chip chip-primary">STEP 01</span>
+          <span class="pipeline-count"><b class="tnum">3</b><span>건</span></span>
+          <span class="pipeline-label text-primary">상담요청</span>
+        </button>
+
+        <div class="step-connector" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <button type="button" class="pipeline-cell">
+          <span class="step-chip chip-information">STEP 02</span>
+          <span class="pipeline-count"><b class="tnum">5</b><span>건</span></span>
+          <span class="pipeline-label text-information">예약대기</span>
+        </button>
+
+        <div class="step-connector" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <button type="button" class="pipeline-cell">
+          <span class="step-chip chip-secondary">STEP 03</span>
+          <span class="pipeline-count"><b class="tnum">12</b><span>건</span></span>
+          <span class="pipeline-label text-secondary">예약확정</span>
+        </button>
+
+        <div class="step-connector" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <button type="button" class="pipeline-cell">
+          <span class="step-chip chip-success">STEP 04</span>
+          <span class="pipeline-count"><b class="tnum">1</b><span>건</span></span>
+          <span class="pipeline-label text-success">상담중</span>
+        </button>
+
+        <div class="step-connector" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <button type="button" class="pipeline-cell">
+          <span class="step-chip chip-default">STEP 05</span>
+          <span class="pipeline-count"><b class="tnum">34</b><span>건</span></span>
+          <span class="pipeline-label text-default">상담완료</span>
+        </button>
+      </div>
+
+      <div class="end-divider" aria-hidden="true"></div>
+
+      <div class="pipeline-ends">
+        <button type="button" class="end-cell">
+          <span class="end-cell-left">
+            <span class="step-chip chip-warning">종료</span>
+            <span class="pipeline-label text-warning">상담불참</span>
+          </span>
+          <span class="pipeline-count"><b class="tnum">3</b><span>건</span></span>
+        </button>
+        <button type="button" class="end-cell">
+          <span class="end-cell-left">
+            <span class="step-chip chip-default">종료</span>
+            <span class="pipeline-label text-default">접종자 취소</span>
+          </span>
+          <span class="pipeline-count"><b class="tnum">1</b><span>건</span></span>
+        </button>
+        <button type="button" class="end-cell">
+          <span class="end-cell-left">
+            <span class="step-chip chip-default">종료</span>
+            <span class="pipeline-label text-default">의료진 취소</span>
+          </span>
+          <span class="pipeline-count"><b class="tnum">1</b><span>건</span></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ AI 분석 결과 / 상담 검토 필요 ════════════════════════════ -->
+  <div class="split-grid">
+
+    <section class="section section-card">
+      <div class="section-head">
+        <div class="section-heading">
+          <h3 class="section-title">AI 분석 결과</h3>
+          <span class="section-desc">자가체크 결과를 AI가 분석한 위험도 분포입니다.</span>
+        </div>
+        <span class="count-pill">10명</span>
+      </div>
+
+      <div class="table-scroll">
+        <table class="dak-table">
+          <colgroup>
+            <col style="width: 100px" />
+            <col style="width: 140px" />
+            <col style="width: 84px" />
+            <col style="width: 200px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>위험도</th>
+              <th>구분</th>
+              <th>인원</th>
+              <th>비중</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="cell-center-flex"><span class="badge badge-danger">Level 4</span></span></td>
+              <td><span class="cell-strong">즉시 상담 필요</span></td>
+              <td><span class="tnum">2명</span></td>
+              <td>
+                <span class="gauge">
+                  <span class="gauge-track"><span class="gauge-fill bar-danger" style="width: 20%"></span></span>
+                  <span class="gauge-value tnum">20%</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="cell-center-flex"><span class="badge badge-warning">Level 3</span></span></td>
+              <td><span class="cell-strong">상담 권고</span></td>
+              <td><span class="tnum">3명</span></td>
+              <td>
+                <span class="gauge">
+                  <span class="gauge-track"><span class="gauge-fill bar-warning" style="width: 30%"></span></span>
+                  <span class="gauge-value tnum">30%</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="cell-center-flex"><span class="badge badge-information">Level 2</span></span></td>
+              <td><span class="cell-strong">경과 관찰</span></td>
+              <td><span class="tnum">3명</span></td>
+              <td>
+                <span class="gauge">
+                  <span class="gauge-track"><span class="gauge-fill bar-information" style="width: 30%"></span></span>
+                  <span class="gauge-value tnum">30%</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="cell-center-flex"><span class="badge badge-success">Level 1</span></span></td>
+              <td><span class="cell-strong">정상 범위</span></td>
+              <td><span class="tnum">2명</span></td>
+              <td>
+                <span class="gauge">
+                  <span class="gauge-track"><span class="gauge-fill bar-success" style="width: 20%"></span></span>
+                  <span class="gauge-value tnum">20%</span>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section section-card">
+      <div class="section-head">
+        <div class="section-heading">
+          <h3 class="section-title">상담 검토 필요</h3>
+          <span class="section-desc">AI 자가체크에서 고위험·주의로 분류된 대상입니다.</span>
+        </div>
+        <span class="count-pill">7명</span>
+      </div>
+
+      <div class="review-wrap">
+        <ul class="review-list">
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-danger">Level 4</span>
+                <b class="review-name">임*준</b>
+                <span class="review-meta">남 · 58세</span>
+              </span>
+              <span class="review-note">고위험 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">09:42</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-warning">Level 3</span>
+                <b class="review-name">천*수</b>
+                <span class="review-meta">남 · 49세</span>
+              </span>
+              <span class="review-note">주의 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">08:55</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-danger">Level 4</span>
+                <b class="review-name">명*환</b>
+                <span class="review-meta">남 · 67세</span>
+              </span>
+              <span class="review-note">고위험 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">어제</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-warning">Level 3</span>
+                <b class="review-name">복*규</b>
+                <span class="review-meta">남 · 52세</span>
+              </span>
+              <span class="review-note">주의 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">어제</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-warning">Level 3</span>
+                <b class="review-name">여*정</b>
+                <span class="review-meta">여 · 28세</span>
+              </span>
+              <span class="review-note">주의 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">2일 전</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-danger">Level 4</span>
+                <b class="review-name">석*빈</b>
+                <span class="review-meta">남 · 47세</span>
+              </span>
+              <span class="review-note">고위험 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">3일 전</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+
+          <li class="review-card card-surface">
+            <button type="button" class="review-main">
+              <span class="review-title-row">
+                <span class="badge badge-warning">Level 3</span>
+                <b class="review-name">채*원</b>
+                <span class="review-meta">여 · 42세</span>
+              </span>
+              <span class="review-note">주의 자가체크 · 상담 검토</span>
+            </button>
+            <div class="review-side">
+              <span class="review-time tnum">3일 전</span>
+              <button type="button" class="btn btn-xs btn-secondary">상담요청</button>
+            </div>
+          </li>
+        </ul>
+
+        <div class="review-fade" aria-hidden="true"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══ 오늘 일정 ════════════════════════════════════════════════ -->
+  <section class="section section-plain">
+    <div class="section-head">
+      <div class="section-heading">
+        <h3 class="section-title">오늘 일정</h3>
+        <span class="section-desc">오늘 예정된 비대면 상담 일정입니다.</span>
+      </div>
+      <span class="count-pill">20건</span>
+    </div>
+
+    <div class="table-block">
+      <div class="table-scroll">
+        <table class="dak-table">
+          <colgroup>
+            <col style="width: 96px" />
+            <col style="width: 112px" />
+            <col style="width: 80px" />
+            <col style="width: 80px" />
+            <col />
+            <col style="width: 112px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>시간</th>
+              <th>이름</th>
+              <th>성별</th>
+              <th>나이</th>
+              <th>증상</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>09:00</td><td><span class="cell-strong">한*지</span></td><td>여</td><td>52세</td>
+              <td><span class="cell-muted">수면장애, 두통</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>09:30</td><td><span class="cell-strong">오*석</span></td><td>남</td><td>39세</td>
+              <td><span class="cell-muted">미열, 오한</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>10:00</td><td><span class="cell-strong">배*희</span></td><td>여</td><td>66세</td>
+              <td><span class="cell-muted">어지럼증</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>10:30</td><td><span class="cell-strong">노*철</span></td><td>남</td><td>54세</td>
+              <td><span class="cell-muted">접종부위 통증</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>11:00</td><td><span class="cell-strong">서*아</span></td><td>여</td><td>33세</td>
+              <td><span class="cell-muted">두드러기</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담취소</span></span></td>
+            </tr>
+            <tr>
+              <td>11:30</td><td><span class="cell-strong">정*민</span></td><td>남</td><td>47세</td>
+              <td><span class="cell-muted">가려움, 발진</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-warning">상담불참</span></span></td>
+            </tr>
+            <tr>
+              <td>13:00</td><td><span class="cell-strong">문*영</span></td><td>여</td><td>58세</td>
+              <td><span class="cell-muted">메스꺼움</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>13:30</td><td><span class="cell-strong">황*수</span></td><td>남</td><td>62세</td>
+              <td><span class="cell-muted">가슴 답답함</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>14:00</td><td><span class="cell-strong">신*라</span></td><td>여</td><td>44세</td>
+              <td><span class="cell-muted">관절통</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-default">상담완료</span></span></td>
+            </tr>
+            <tr>
+              <td>14:30</td><td><span class="cell-strong">권*호</span></td><td>남</td><td>51세</td>
+              <td><span class="cell-muted">근육통, 발열</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-success">상담중</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <div class="edge-group">
+            <button type="button" class="page-move disabled" aria-label="첫 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 24 20" width="24" height="20" fill="none"><path d="M16.5 5L11.5 10L16.5 15M11.5 5L6.5 10L11.5 15" stroke="var(--dak-color-gray-40)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="page-move disabled" aria-label="이전 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="var(--dak-color-gray-40)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+          </div>
+
+          <div class="page-list">
+            <button type="button" class="page-item active">1</button>
+            <button type="button" class="page-item">2</button>
+          </div>
+
+          <div class="edge-group">
+            <button type="button" class="page-move" aria-label="다음 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="var(--dak-color-primary-50)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="page-move" aria-label="마지막 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 24 20" width="24" height="20" fill="none"><path d="M7.5 5L12.5 10L7.5 15M12.5 5L17.5 10L12.5 15" stroke="var(--dak-color-primary-50)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 처리 필요 ════════════════════════════════════════════════ -->
+  <section class="section section-plain">
+    <div class="section-head">
+      <div class="section-heading">
+        <h3 class="section-title">처리 필요</h3>
+        <span class="section-desc">일정 확정이나 재요청이 필요한 상담 건입니다.</span>
+      </div>
+      <span class="count-pill">13건</span>
+    </div>
+
+    <div class="table-block">
+      <div class="table-scroll">
+        <table class="dak-table">
+          <colgroup>
+            <col style="width: 104px" />
+            <col style="width: 112px" />
+            <col style="width: 80px" />
+            <col style="width: 80px" />
+            <col />
+            <col style="width: 120px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>요청 시각</th>
+              <th>이름</th>
+              <th>성별</th>
+              <th>나이</th>
+              <th>처리 내용</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>10:12</td><td><span class="cell-strong">양*순</span></td><td>여</td><td>62세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+            <tr>
+              <td>09:20</td><td><span class="cell-strong">곽*연</span></td><td>여</td><td>34세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+            <tr>
+              <td>08:30</td><td><span class="cell-strong">구*희</span></td><td>여</td><td>55세</td>
+              <td><span class="cell-muted">일정 미선택</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-primary">상담요청</span></span></td>
+            </tr>
+            <tr>
+              <td>08:05</td><td><span class="cell-strong">백*훈</span></td><td>남</td><td>43세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+            <tr>
+              <td>어제</td><td><span class="cell-strong">이*은</span></td><td>여</td><td>45세</td>
+              <td><span class="cell-muted">일정 미선택</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-primary">상담요청</span></span></td>
+            </tr>
+            <tr>
+              <td>어제</td><td><span class="cell-strong">하*영</span></td><td>여</td><td>31세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+            <tr>
+              <td>어제</td><td><span class="cell-strong">설*미</span></td><td>여</td><td>40세</td>
+              <td><span class="cell-muted">일정 미선택</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-primary">상담요청</span></span></td>
+            </tr>
+            <tr>
+              <td>2일 전</td><td><span class="cell-strong">탁*원</span></td><td>남</td><td>59세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+            <tr>
+              <td>2일 전</td><td><span class="cell-strong">진*태</span></td><td>남</td><td>64세</td>
+              <td><span class="cell-muted">일정 미선택</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-primary">상담요청</span></span></td>
+            </tr>
+            <tr>
+              <td>2일 전</td><td><span class="cell-strong">봉*아</span></td><td>여</td><td>36세</td>
+              <td><span class="cell-muted">일정 확정 필요</span></td>
+              <td><span class="cell-center-flex"><span class="badge badge-information">예약대기</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-wrap">
+        <div class="pagination">
+          <div class="edge-group">
+            <button type="button" class="page-move disabled" aria-label="첫 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 24 20" width="24" height="20" fill="none"><path d="M16.5 5L11.5 10L16.5 15M11.5 5L6.5 10L11.5 15" stroke="var(--dak-color-gray-40)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="page-move disabled" aria-label="이전 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M12.5 5L7.5 10L12.5 15" stroke="var(--dak-color-gray-40)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+          </div>
+
+          <div class="page-list">
+            <button type="button" class="page-item active">1</button>
+            <button type="button" class="page-item">2</button>
+          </div>
+
+          <div class="edge-group">
+            <button type="button" class="page-move" aria-label="다음 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M7.5 5L12.5 10L7.5 15" stroke="var(--dak-color-primary-50)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+            <button type="button" class="page-move" aria-label="마지막 페이지">
+              <span aria-hidden="true"><svg viewBox="0 0 24 20" width="24" height="20" fill="none"><path d="M7.5 5L12.5 10L7.5 15M12.5 5L17.5 10L12.5 15" stroke="var(--dak-color-primary-50)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
