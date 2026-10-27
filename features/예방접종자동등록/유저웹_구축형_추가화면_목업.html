@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>구축형 유저웹 — 추가 개발 화면 목업</title>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-soft: #eff6ff;
+      --pink: #ec4899;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header.page-head {
+      position: sticky; top: 0; z-index: 20;
+      background: #fff; border-bottom: 1px solid var(--line);
+      padding: 14px 20px;
+    }
+    header.page-head h1 { margin: 0; font-size: 16px; }
+    header.page-head p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .nav {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+    .nav button {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 6px 12px; font-size: 12px; cursor: pointer;
+    }
+    .nav button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .stage {
+      display: flex; gap: 24px; padding: 24px; overflow-x: auto;
+      align-items: flex-start;
+    }
+    .phone-wrap { flex: 0 0 auto; width: 320px; }
+    .phone-label {
+      font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--blue-dark);
+    }
+    .phone {
+      width: 320px; min-height: 640px; background: #fff;
+      border: 1px solid #d1d5db; border-radius: 24px; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+      display: flex; flex-direction: column;
+    }
+    .app-bar {
+      height: 52px; display: flex; align-items: center; justify-content: center;
+      position: relative; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 15px; color: var(--blue);
+    }
+    .app-bar .back, .app-bar .menu {
+      position: absolute; top: 0; bottom: 0; width: 48px;
+      display: flex; align-items: center; justify-content: center;
+      color: #374151; font-size: 18px;
+    }
+    .app-bar .back { left: 0; }
+    .app-bar .menu { right: 0; }
+    .content { padding: 16px; flex: 1; }
+    .content.with-bottom-bar { padding-bottom: 88px; }
+    .hero-title { font-size: 18px; font-weight: 800; line-height: 1.35; margin: 8px 0 6px; }
+    .sub { font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 16px; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; height: 48px; border-radius: 12px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn + .btn { margin-top: 10px; }
+    .bottom-actions {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+    .bottom-actions .btn { margin-top: 0; font-size: 14px; }
+    .btn-kakao { background: #fee500; color: #191600; }
+    .btn-naver { background: #03c75a; color: #fff; }
+    .btn-pass { background: #e8384f; color: #fff; }
+    .btn-outline {
+      background: #fff; border: 1px solid #d1d5db; color: #111;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-ghost { background: #fff; border: 1px solid var(--blue); color: var(--blue); }
+    .btn-muted { background: #f3f4f6; color: #9ca3af; }
+    .divider {
+      display: flex; align-items: center; gap: 10px; margin: 16px 0;
+      color: #9ca3af; font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ""; flex: 1; height: 1px; background: var(--line);
+    }
+    .card {
+      border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fff;
+    }
+    .card.selectable { cursor: pointer; }
+    .card.selectable:hover, .card.selected { border-color: var(--blue); background: var(--blue-soft); }
+    .card + .card { margin-top: 10px; }
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choice {
+      border: 1.5px solid var(--line); border-radius: 14px; padding: 18px 12px; text-align: center;
+      font-weight: 700; cursor: pointer; background: #fff;
+    }
+    .choice.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+    .choice small { display: block; margin-top: 6px; font-weight: 500; color: var(--muted); font-size: 11px; }
+    .choice.compact {
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    label.field { display: block; font-size: 12px; font-weight: 600; margin: 12px 0 6px; }
+    input, select {
+      width: 100%; height: 44px; border: 1px solid #d1d5db; border-radius: 10px;
+      padding: 0 12px; font-size: 14px;
+    }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .check-row {
+      display: flex; gap: 8px; align-items: center;
+      font-size: 12px; line-height: 1.45; color: #374151;
+    }
+    .check-row input[type="checkbox"] {
+      width: 18px; height: 18px; flex: 0 0 auto; margin: 0; padding: 0;
+    }
+    .check-row .grow { flex: 1; min-width: 0; }
+    .link-view {
+      flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--blue);
+      text-decoration: underline; cursor: pointer; white-space: nowrap;
+    }
+    .seg {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px;
+    }
+    .seg button {
+      height: 36px; border-radius: 8px; border: 1px solid var(--line);
+      background: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .seg button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .badge {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+      background: var(--blue-soft); color: var(--blue); font-weight: 700;
+    }
+    .badge.pink { background: #fce7f3; color: #db2777; }
+    .qr-box {
+      border: 2px solid var(--blue); border-radius: 16px; padding: 20px; text-align: center;
+    }
+    .qr-fake {
+      width: 180px; height: 180px; margin: 0 auto 12px;
+      background:
+        linear-gradient(90deg, #111 25%, transparent 25%) 0 0 / 12px 12px,
+        linear-gradient(#111 25%, transparent 25%) 0 0 / 12px 12px,
+        #fff;
+      border: 1px solid #111;
+    }
+    .note {
+      margin-top: 10px; padding: 10px 12px; background: #fff7ed; border-radius: 10px;
+      font-size: 11px; color: #9a3412; line-height: 1.4;
+    }
+    .family-item {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%; background: #e5e7eb;
+      display: flex; align-items: center; justify-content: center; font-size: 12px; color: #6b7280;
+    }
+    .avatar.add {
+      border: 1.5px dashed var(--blue); background: var(--blue-soft); color: var(--blue); font-size: 20px;
+    }
+    .footer-safe {
+      margin-top: 20px; text-align: center; font-size: 11px; color: var(--blue);
+    }
+    .hidden-block { display: none; }
+    .hidden-block.show { display: block; }
+    .legend {
+      max-width: 960px; margin: 0 auto 8px; padding: 0 24px 16px; font-size: 13px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <h1>구축형 유저웹 — 추가 개발 화면 목업</h1>
+    <p>
+      기존 홈·마이·가족QR·자가체크 등은 유지. 아래만 신규/변경 개발 대상입니다.
+      · <a href="유저웹_구축형_상시저장_목업_v2.html">유저웹 v2</a>
+      · <a href="Vd-IMS_구축형_추가화면_목업.html">Vd-IMS 목업</a>
+    </p>
+    <div class="nav" id="nav"></div>
+  </header>
+  <p class="legend">브라우저에서 버튼을 눌러 화면을 전환해 보세요. 실제 데이터·API는 연결되지 않은 UI 목업입니다.</p>
+
+  <div class="stage">
+    <!-- UW-01 -->
+    <div class="phone-wrap" data-id="UW-01">
+      <div class="phone-label">UW-01 로그인 (기존 유지)</div>
+      <div class="phone">
+        <div class="app-bar">안심예방접종 통합서비스</div>
+        <div class="content" style="display:flex;flex-direction:column;justify-content:center;">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="font-size:40px;line-height:1;">🦆</div>
+            <div class="hero-title" style="text-align:center;">안심예방접종 통합서비스</div>
+            <div class="sub" style="text-align:center;">내가 맞은 백신, 내가 확인해요!</div>
+          </div>
+          <button class="btn btn-kakao">카카오로 시작하기</button>
+          <button class="btn btn-naver">네이버로 시작하기</button>
+          <div class="divider">또는</div>
+          <button class="btn btn-outline">회원 로그인 / 회원가입</button>
+          <div class="hint" style="text-align:center;margin-top:10px;">일반 회원가입 시 PASS 본인인증을 진행해요.</div>
+          <div class="footer-safe">안전한 서비스 이용을 위해 보안 접속 중이에요.</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- UW-01A 약관동의 -->
+    <div class="phone-wrap" data-id="UW-01A">
+      <div class="phone-label">UW-01A 약관동의 (신규) — 로그인 다음</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>약관동의<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">안심예방접종통합서비스를<br/>이용하고 싶으시다면<br/><span style="color:var(--blue)">약관에 동의</span>해 주세요!</div>
+
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" />
+              <span class="grow" style="font-weight:700;">전체동의</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" checked />
+              <span class="grow">[필수] 서비스 이용약관</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" checked />
+              <span class="grow">[필수] 개인정보 수집 이용동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;border-color:#bfdbfe;background:var(--blue-soft);">
+            <div class="check-row">
+              <input type="checkbox" checked />
+              <span class="grow">[필수] 고유식별정보 수집·이용 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" checked />
+              <span class="grow">[필수] 개인정보 제3자 제공 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" checked />
+              <span class="grow">[필수] 민감정보 수집 · 이용 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:8px;">
+            <div class="check-row">
+              <input type="checkbox" />
+              <span class="grow">[선택] 마케팅 수신 동의</span>
+              <span class="link-view">보기</span>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <span class="link-view" style="font-weight:600;">개인정보처리방침</span>
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-primary" onclick="go('UW-02')">다음</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-02 -->
+    <div class="phone-wrap" data-id="UW-02">
+      <div class="phone-label">UW-02 오늘 접종 확인 (신규) — 병원 QR 로그인 후</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>접종 확인<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">오늘 예방접종을<br/>진행하시나요?</div>
+          <p class="sub">필수 정보를 입력하면 접종용 QR이 발급돼요.</p>
+          <div class="card" style="background:var(--blue-soft);border-color:#bfdbfe;margin-bottom:16px;">
+            <div class="hint" style="margin:0;color:#1e3a8a;">입력한 정보는 질병관리청 예방접종정보 등록 후 즉시 삭제돼요.</div>
+          </div>
+        </div>
+        <div class="bottom-actions">
+          <button class="btn btn-ghost">아니오</button>
+          <button class="btn btn-primary" onclick="go('UW-03')">네, 오늘 접종해요</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-03 -->
+    <div class="phone-wrap" data-id="UW-03">
+      <div class="phone-label">UW-03 접종 대상 선택 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>접종 대상<span class="menu">☰</span></div>
+        <div class="content">
+          <div class="hero-title">누가 접종하나요?</div>
+          <p class="sub">오늘 접종하시는 분을 선택해 주세요</p>
+          <div class="choice-row">
+            <div class="choice active" onclick="go('UW-04')">본인<small>가입 회원</small></div>
+            <div class="choice" onclick="go('UW-05')">가족<small>자녀</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-04 -->
+    <div class="phone-wrap" data-id="UW-04">
+      <div class="phone-label">UW-04 본인 정보 입력 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>본인 정보<span class="menu">☰</span></div>
+        <div class="content">
+          <div class="hero-title">김대중 님 정보를<br/>확인해 주세요</div>
+          <p class="sub">질병관리청 예방접종 등록을 위해 필수 정보를 입력해 주세요.</p>
+
+          <label class="field">내/외국인 선택 *</label>
+          <div class="seg" id="idTypeSelf" style="grid-template-columns: 1fr 1fr;">
+            <button type="button" class="on" data-t="13">내국인</button>
+            <button type="button" data-t="f">외국인</button>
+          </div>
+
+          <label class="field" id="selfIdLabel">주민등록번호 *</label>
+          <input id="selfIdInput" placeholder="000000-0000000" />
+          <div class="hint" id="selfIdHint">주민등록번호 13자리를 입력해 주세요.</div>
+
+          <label class="field">주소 *</label>
+          <input placeholder="도로명 주소 검색" />
+          <label class="field">상세주소 *</label>
+          <input placeholder="상세주소 입력" />
+          <label class="field">우편번호 *</label>
+          <input value="06236" readonly style="background:#f9fafb;" />
+
+          <button class="btn btn-primary" style="margin-top:18px;" onclick="go('UW-07')">접종 QR 발급</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-05 -->
+    <div class="phone-wrap" data-id="UW-05">
+      <div class="phone-label">UW-05 가족 선택 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>가족 선택<span class="menu">☰</span></div>
+        <div class="content">
+          <div class="hero-title">접종할 가족을<br/>선택해 주세요</div>
+          <p class="sub">등록된 가족을 선택하거나 새로 추가할 수 있어요.</p>
+
+          <div class="card selectable" onclick="go('UW-04')">
+            <div class="family-item">
+              <div class="avatar">하율</div>
+              <div>
+                <div style="font-weight:700;">하율 <span class="badge pink">여자</span></div>
+                <div class="hint" style="margin:0;">2026.07.03 · 관계: 자</div>
+              </div>
+            </div>
+          </div>
+          <div class="card selectable">
+            <div class="family-item">
+              <div class="avatar">민중</div>
+              <div>
+                <div style="font-weight:700;">김민중 <span class="badge">남자</span></div>
+                <div class="hint" style="margin:0;">2007.07.11 · 관계: 자</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card selectable" style="border-style:dashed;border-color:var(--blue);" onclick="go('UW-06')">
+            <div class="family-item">
+              <div class="avatar add">+</div>
+              <div>
+                <div style="font-weight:700;color:var(--blue);">가족 추가</div>
+                <div class="hint" style="margin:0;">새로운 가족을 추가할 수 있어요</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-06 -->
+    <div class="phone-wrap" data-id="UW-06">
+      <div class="phone-label">UW-06 가족 추가 (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>가족 추가<span class="menu">☰</span></div>
+        <div class="content">
+          <div class="hero-title">새 가족 정보를<br/>입력해 주세요</div>
+          <p class="sub">질병관리청 예방접종 등록을 위해 필수 정보를 입력해 주세요.</p>
+
+          <label class="field">이름 *</label>
+          <input placeholder="이름" />
+
+          <label class="field">주민등록번호 / 신생아 *</label>
+          <div class="seg" id="idTypeFamily" style="grid-template-columns: 1fr 1fr;">
+            <button type="button" class="on" data-t="13">주민등록번호</button>
+            <button type="button" data-t="7">신생아</button>
+          </div>
+          <input id="familyIdInput" style="margin-top:8px;" placeholder="000000-0000000" />
+          <div class="hint" id="familyIdHint">주민등록번호 13자리를 입력해 주세요.</div>
+
+          <div id="familyGuardian" class="hidden-block">
+            <label class="field">보호자 주민등록번호 *</label>
+            <input placeholder="보호자 주민등록번호" />
+          </div>
+
+          <label class="field">성별 *</label>
+          <div class="choice-row">
+            <div class="choice compact">남자</div>
+            <div class="choice compact active">여자</div>
+          </div>
+
+          <div class="choice-row" style="margin-top:4px;align-items:start;">
+            <div>
+              <label class="field">관계 *</label>
+              <select>
+                <option>자</option>
+                <option>부</option>
+                <option>모</option>
+                <option>기타</option>
+              </select>
+            </div>
+            <div>
+              <label class="field">쌍둥이 구분 *</label>
+              <select>
+                <option>해당없음 (1)</option>
+                <option>첫째 (1)</option>
+                <option>둘째 (2)</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="field">주소 *</label>
+          <input placeholder="도로명 주소 검색" />
+          <label class="field">상세주소 *</label>
+          <input placeholder="상세주소" />
+          <label class="field">우편번호 *</label>
+          <input readonly style="background:#f9fafb;" placeholder="자동 입력" />
+
+          <button class="btn btn-primary" style="margin-top:18px;" onclick="go('UW-07')">접종 QR 발급</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UW-07 -->
+    <div class="phone-wrap" data-id="UW-07">
+      <div class="phone-label">UW-07 접종 QR (신규)</div>
+      <div class="phone">
+        <div class="app-bar"><span class="back">←</span>접종 QR<span class="menu">☰</span></div>
+        <div class="content with-bottom-bar">
+          <div class="hero-title">접종 QR을<br/>의료진에게 보여주세요</div>
+          <p class="sub">접종 QR 스캔 후 백신 접종이 진행돼요</p>
+
+          <div class="qr-box">
+            <div class="qr-fake" aria-hidden="true"></div>
+            <div style="font-weight:800;">하율 님 접종 QR</div>
+            <div class="hint">2026.07.03 · 여자 · 관계: 자</div>
+          </div>
+        </div>
+        <div class="bottom-actions" style="grid-template-columns: 1fr;">
+          <button class="btn btn-ghost">홈으로</button>
+        </div>
+      </div>
+    </div>
+
+  <script>
+    const ids = ["UW-01","UW-01A","UW-02","UW-03","UW-04","UW-05","UW-06","UW-07"];
+    const nav = document.getElementById("nav");
+    ids.forEach((id, i) => {
+      const b = document.createElement("button");
+      b.textContent = id;
+      b.onclick = () => go(id);
+      if (i === 0) b.classList.add("active");
+      nav.appendChild(b);
+    });
+
+    function go(id) {
+      document.querySelectorAll(".phone-wrap").forEach(el => {
+        el.style.outline = el.dataset.id === id ? "3px solid #2563eb" : "none";
+        el.style.outlineOffset = "4px";
+      });
+      document.querySelectorAll("#nav button").forEach(b => {
+        b.classList.toggle("active", b.textContent === id);
+      });
+      const target = document.querySelector(`[data-id="${id}"]`);
+      if (target) target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+
+    function wireSeg(segId, guardianId) {
+      const seg = document.getElementById(segId);
+      const g = document.getElementById(guardianId);
+      const input = document.getElementById("familyIdInput");
+      const hint = document.getElementById("familyIdHint");
+      if (!seg) return;
+      seg.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          seg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+          btn.classList.add("on");
+          const isNewborn = btn.dataset.t === "7";
+          if (g) g.classList.toggle("show", isNewborn);
+          if (input) input.placeholder = isNewborn ? "생년월일+성별 7자리 (예: 0701023)" : "000000-0000000";
+          if (hint) hint.textContent = isNewborn
+            ? "신생아(출생신고 전)는 7자리를 입력해 주세요."
+            : "주민등록번호 13자리를 입력해 주세요.";
+        });
+      });
+    }
+    wireSeg("idTypeFamily", "familyGuardian");
+
+    function wireNation(segId) {
+      const seg = document.getElementById(segId);
+      const label = document.getElementById("selfIdLabel");
+      const input = document.getElementById("selfIdInput");
+      const hint = document.getElementById("selfIdHint");
+      if (!seg) return;
+      seg.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          seg.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+          btn.classList.add("on");
+          const isForeigner = btn.dataset.t === "f";
+          if (label) label.textContent = isForeigner ? "외국인등록번호 *" : "주민등록번호 *";
+          if (input) input.placeholder = "000000-0000000";
+          if (hint) hint.textContent = isForeigner
+            ? "외국인등록번호 13자리를 입력해 주세요."
+            : "주민등록번호 13자리를 입력해 주세요.";
+        });
+      });
+    }
+    wireNation("idTypeSelf");
+
+    go("UW-02");
+  </script>
+</body>
+</html>

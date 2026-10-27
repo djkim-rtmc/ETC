@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>구축형 Vd-IMS — 추가 개발 화면 목업</title>
+  <style>
+    :root {
+      --pink: #d6006e;
+      --pink-soft: #fdf2f8;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --bg: #f3f4f6;
+      --ok: #059669;
+      --warn: #d97706;
+      --err: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header.page-head {
+      position: sticky; top: 0; z-index: 20;
+      background: #fff; border-bottom: 1px solid var(--line);
+      padding: 14px 20px;
+    }
+    header.page-head h1 { margin: 0; font-size: 16px; }
+    header.page-head p { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .nav button {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 6px 12px; font-size: 12px; cursor: pointer;
+    }
+    .nav button.active { background: var(--pink); color: #fff; border-color: var(--pink); }
+    .legend {
+      max-width: 1100px; margin: 0 auto; padding: 12px 24px 0; font-size: 13px; color: var(--muted);
+    }
+    .stage {
+      display: flex; gap: 24px; padding: 24px; overflow-x: auto;
+      align-items: flex-start;
+    }
+    .screen-wrap { flex: 0 0 auto; width: 980px; }
+    .screen-label {
+      font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--pink);
+    }
+    .desk {
+      width: 980px; min-height: 560px; background: #fff;
+      border: 1px solid #d1d5db; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,.06);
+      display: grid; grid-template-columns: 56px 1fr; position: relative;
+    }
+    .rail {
+      background: #fff; border-right: 1px solid var(--line); padding: 12px 0;
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+    }
+    .rail .logo { color: var(--pink); font-weight: 900; font-size: 16px; }
+    .rail .ic {
+      width: 22px; height: 22px; border-radius: 6px; background: #f3f4f6; color: #9ca3af;
+      display: flex; align-items: center; justify-content: center; font-size: 12px;
+    }
+    .rail .ic.on { background: var(--pink-soft); color: var(--pink); }
+    .main { display: flex; flex-direction: column; min-height: 560px; }
+    .topbar {
+      height: 46px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 0 16px; gap: 12px; font-size: 12px; color: var(--muted);
+    }
+    .topbar .org { font-weight: 700; color: #374151; }
+    .body { padding: 18px 22px 22px; flex: 1; }
+    h2.title { margin: 0 0 14px; font-size: 18px; }
+    .sub { margin: 0 0 14px; font-size: 12px; color: var(--muted); }
+    .searchbar {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 12px;
+    }
+    .searchbar .search {
+      flex: 1; height: 40px; border: 1px solid #d1d5db; border-radius: 8px;
+      padding: 0 12px; font-size: 13px;
+    }
+    .row-between { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 10px; }
+    .count { font-size: 13px; font-weight: 700; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 38px; padding: 0 16px; border-radius: 8px; border: none;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+    }
+    .btn-pink { background: #fff; border: 1px solid var(--pink); color: var(--pink); }
+    .btn-pink-fill { background: var(--pink); color: #fff; }
+    .btn-outline { background: #fff; border: 1px solid #d1d5db; color: #374151; }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-sm { height: 30px; padding: 0 10px; font-size: 12px; }
+    table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.grid th, table.grid td {
+      border-bottom: 1px solid var(--line); padding: 12px 8px; text-align: center;
+    }
+    table.grid th { background: #f8fafc; font-size: 12px; color: var(--muted); font-weight: 700; }
+    table.grid td.edit { color: var(--pink); cursor: pointer; }
+    .badge {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700;
+    }
+    .badge.blue { background: var(--blue-soft); color: var(--blue); }
+    .badge.gray { background: #f3f4f6; color: #4b5563; }
+    .badge.green { background: #ecfdf5; color: var(--ok); }
+    .badge.orange { background: #fff7ed; color: var(--warn); }
+    .badge.red { background: #fef2f2; color: var(--err); }
+    /* label-left form (실제 Vd-IMS 스타일) */
+    .kv-form { border-top: 1px solid var(--line); }
+    .kv-row {
+      display: grid; grid-template-columns: 150px 1fr; align-items: center;
+      border-bottom: 1px solid var(--line); min-height: 56px; padding: 8px 0;
+    }
+    .kv-row .k {
+      font-size: 13px; font-weight: 600; color: #374151; padding: 0 14px;
+      background: #fafafa; align-self: stretch; display: flex; align-items: center;
+    }
+    .kv-row .v { padding: 6px 14px; }
+    .kv-row .v input, .kv-row .v select {
+      width: 100%; max-width: 520px; height: 40px; border: 1px solid #d1d5db;
+      border-radius: 8px; padding: 0 12px; font-size: 13px;
+    }
+    .kv-row .v input[readonly] { background: #f9fafb; color: #6b7280; }
+    .kv-row .v .inline { display: flex; gap: 8px; align-items: center; max-width: 620px; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .radio-row { display: flex; gap: 20px; align-items: center; font-size: 13px; }
+    .radio-row label {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #374151; cursor: pointer;
+    }
+    .radio-row input[type=radio] {
+      width: 15px; height: 15px; min-width: 15px; margin: 0;
+      accent-color: var(--blue); padding: 0;
+    }
+    .actions { margin-top: 18px; display: flex; gap: 8px; justify-content: center; }
+    .actions.right { justify-content: flex-end; }
+    .section-title { margin: 20px 0 8px; font-size: 13px; font-weight: 800; color: var(--pink); }
+    .kv-row.hl .k { background: var(--pink-soft); color: var(--pink); }
+    .info {
+      margin-top: 14px; padding: 10px 12px; background: var(--blue-soft); border: 1px solid #bfdbfe;
+      border-radius: 8px; font-size: 12px; color: #1e3a8a; line-height: 1.45;
+    }
+    .upload {
+      width: 220px; height: 110px; border: 1px dashed #cbd5e1; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #94a3b8; font-size: 11px; gap: 6px; background: #fafafa;
+    }
+    /* modal */
+    .modal-overlay {
+      position: absolute; inset: 0; background: rgba(15,23,42,.45);
+      display: flex; align-items: center; justify-content: center; z-index: 5;
+    }
+    .modal {
+      width: 460px; background: #fff; border-radius: 12px; padding: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.25);
+    }
+    .modal h3 { margin: 0 0 16px; font-size: 16px; }
+    .modal .kv-row { min-height: 50px; grid-template-columns: 110px 1fr; }
+    .modal .kv-row .k { background: transparent; padding-left: 0; }
+    .modal .kv-row .v input, .modal .kv-row .v select { max-width: 100%; }
+    .modal .actions { margin-top: 18px; }
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;
+    }
+    .toolbar input, .toolbar select {
+      height: 38px; border: 1px solid #d1d5db; border-radius: 8px; padding: 0 10px; font-size: 13px; background: #fff;
+    }
+    .toolbar input[type=text] { width: 140px; }
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 8px 12px; font-size: 13px; }
+    .kv .k { color: var(--muted); }
+    .warn-box {
+      padding: 10px 12px; background: #fff7ed; border: 1px solid #fed7aa;
+      border-radius: 8px; font-size: 12px; color: #9a3412; line-height: 1.45; margin: 12px 0;
+    }
+    .err-box {
+      padding: 10px 12px; background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 8px; font-size: 12px; color: #991b1b; line-height: 1.45; margin: 12px 0;
+    }
+    .section {
+      margin: 14px 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff;
+    }
+    .section h3 { margin: 0 0 10px; font-size: 13px; color: #374151; }
+    /* 접종내역 상세 팝업 */
+    .modal.wide { width: 680px; max-height: 520px; overflow-y: auto; padding: 20px; }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+    }
+    .modal-head .title-row { display: flex; align-items: center; gap: 8px; }
+    .modal-head h3 { margin: 0; }
+    .modal-head .head-actions { display: flex; align-items: center; gap: 10px; }
+    .modal-head .close { color: #9ca3af; font-size: 14px; cursor: pointer; }
+    .detail-box {
+      background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
+      padding: 12px 14px; margin-bottom: 10px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start;
+    }
+    .detail-box.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .detail-box .dt { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+    .detail-box .dd { display: block; font-size: 12px; color: #111827; line-height: 1.45; word-break: break-all; }
+    .scroll-box { max-height: 130px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .scroll-box table.grid th { position: sticky; top: 0; z-index: 1; }
+    .demo-switch { margin-left: 10px; font-weight: 600; color: var(--muted); }
+    .demo-switch button {
+      height: 22px; padding: 0 8px; margin-left: 4px; font-size: 11px; font-weight: 700;
+      border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 999px; cursor: pointer;
+    }
+    .demo-switch button:hover { border-color: var(--pink); color: var(--pink); }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <h1>구축형 Vd-IMS — 추가 개발 화면 목업 <span class="badge blue">v0.2</span></h1>
+    <p>
+      실제 Vd-IMS 구조에 맞춰 구성했습니다.
+      <strong>질병청 기관 자격은 병원 프로필</strong>, 계정은 <strong>예진의사 성명·접종자 정보</strong> 필드로 사용합니다.
+      상단 화면 버튼·필터·선택 전송·상세 팝업 상태 전환이 동작합니다.
+      · <a href="유저웹_구축형_추가화면_목업.html">유저웹 v1</a>
+      · <a href="유저웹_구축형_상시저장_목업_v2.html">유저웹 v2</a>
+    </p>
+    <div class="nav" id="nav"></div>
+  </header>
+  <p class="legend">
+    질병청 Usrid/Pwd = 병원 프로필(기관 단위) · 계정 필드: 예진의사 성명·접종자 정보 · 재전송 = 실패·미전송(PII TTL 내)
+  </p>
+
+  <div class="stage">
+
+    <!-- VI-04 병원 프로필 -->
+    <div class="screen-wrap" data-id="VI-04">
+      <div class="screen-label">VI-04 병원 프로필 — 질병청 기관 자격 (구축형 추가)</div>
+      <div class="desk">
+        <aside class="rail">
+          <div class="logo">V</div>
+          <div class="ic">👤</div><div class="ic">📋</div><div class="ic">📊</div><div class="ic on">⚙️</div>
+        </aside>
+        <div class="main">
+          <div class="topbar"><span class="org">강남소아과의원</span> · 병원 관리자 ▾</div>
+          <div class="body">
+            <h2 class="title">병원 프로필</h2>
+            <div class="kv-form">
+              <div class="kv-row"><div class="k">프로필</div><div class="v">
+                <div class="upload"><div style="font-size:18px;">⬆</div>프로필 이미지를 업로드 해주세요<br/>(파일 최대 용량 2MB)</div>
+              </div></div>
+              <div class="kv-row"><div class="k">병원명</div><div class="v"><input value="강남소아과의원" /></div></div>
+              <div class="kv-row"><div class="k">대표자명</div><div class="v"><input placeholder="대표자명을 입력해주세요." /></div></div>
+              <div class="kv-row"><div class="k">사업자번호</div><div class="v"><input placeholder="사업자번호를 입력해주세요." /></div></div>
+              <div class="kv-row"><div class="k">주소</div><div class="v"><input placeholder="주소를 입력해주세요." /></div></div>
+              <div class="kv-row"><div class="k">팩스</div><div class="v"><input placeholder="팩스를 입력해주세요." /></div></div>
+              <div class="kv-row"><div class="k">전화번호</div><div class="v"><input placeholder="전화번호를 입력해주세요." /></div></div>
+              <div class="kv-row"><div class="k">전화번호 공개</div><div class="v">
+                <div class="radio-row">
+                  <label><input type="radio" name="telpub" /><span>공개</span></label>
+                  <label><input type="radio" name="telpub" checked /><span>비공개</span></label>
+                </div>
+              </div></div>
+
+              <div class="kv-row hl"><div class="k">질병청 기관 ID (Usrid) *</div><div class="v"><input value="KDCA_GANGNAM01" /></div></div>
+              <div class="kv-row hl"><div class="k">질병청 기관 PW (Pwd) *</div><div class="v">
+                <div class="inline"><input type="password" value="************" /><button class="btn btn-outline btn-sm">연결 테스트</button></div>
+                <div class="hint">암호화 저장 · 화면에는 마스킹 표시 · 저장 후 질병청 로그인 검증(권장)</div>
+              </div></div>
+            </div>
+            <div class="info">병원마다 질병청 계정이 다를 수 있어, Usrid/Pwd는 계정이 아닌 <strong>병원 프로필(기관 단위)</strong>에 둡니다. IR24 전송 시 이 자격으로 로그인합니다.</div>
+            <div class="actions">
+              <button class="btn btn-outline">취소</button>
+              <button class="btn btn-pink">수정</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VI-06 접종내역 -->
+    <div class="screen-wrap" data-id="VI-06">
+      <div class="screen-label">VI-06 접종내역 — 전송상태·재전송 (구축형)</div>
+      <div class="desk">
+        <aside class="rail">
+          <div class="logo">V</div>
+          <div class="ic">👤</div><div class="ic on">📋</div><div class="ic">📊</div><div class="ic">⚙️</div>
+        </aside>
+        <div class="main">
+          <div class="topbar"><span class="org">강남소아과의원</span> · 병원 관리자 ▾ · RRN 비표시</div>
+          <div class="body">
+            <h2 class="title">접종내역</h2>
+            <div class="searchbar">
+              <select id="statusFilter" onchange="filterRows()" style="height:40px;border:1px solid #d1d5db;border-radius:8px;padding:0 10px;font-size:13px;background:#fff;">
+                <option value="all">전송상태 전체</option>
+                <option value="미전송">미전송</option>
+                <option value="전송실패">전송실패</option>
+                <option value="전송완료">전송완료</option>
+              </select>
+              <input type="date" value="2026-05-19" style="height:40px;border:1px solid #d1d5db;border-radius:8px;padding:0 10px;font-size:13px;" />
+              <span class="hint" style="margin:0;">-</span>
+              <input type="date" value="2026-08-19" style="height:40px;border:1px solid #d1d5db;border-radius:8px;padding:0 10px;font-size:13px;" />
+              <input class="search" placeholder="검색어를 입력해주세요. (성명은 한자로 입력해주세요)" />
+              <button class="btn btn-pink-fill">검색</button>
+            </div>
+            <div class="row-between">
+              <div class="count">• 전체 <span id="rowCount">6</span>개</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-pink-fill" id="sendAllBtn" disabled onclick="sendAll()">선택 전송 <span id="selCount">0</span></button>
+                <button class="btn btn-pink">엑셀다운로드 ⬇</button>
+              </div>
+            </div>
+            <table class="grid" id="vacGrid">
+              <thead>
+                <tr>
+                  <th style="width:38px;"><input type="checkbox" id="chkAll" onchange="toggleAll()" /></th>
+                  <th>접종일시</th><th>성명</th><th>감염병명</th><th>유/무료</th><th>백신명</th>
+                  <th>로트번호</th><th>전송상태</th><th>자가체크</th><th>연계 진료</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-status="전송실패">
+                  <td><input type="checkbox" class="rowChk" onchange="updateSel()" /></td>
+                  <td>2026-08-19 10:12:03</td><td>하*율</td><td>B형간염(HepB)</td><td>무료</td>
+                  <td>헤파뮨주(한국백신)</td><td>qwerhh</td>
+                  <td><span class="badge red">전송실패</span></td><td><span class="badge gray">0/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+                <tr data-status="전송실패">
+                  <td><input type="checkbox" class="rowChk" onchange="updateSel()" /></td>
+                  <td>2026-08-19 09:58:16</td><td>이*석</td><td>A형간염(HepA)</td><td>무료</td>
+                  <td>지쎄듀부스터프리필드시린지</td><td>qwerhh</td>
+                  <td><span class="badge red">전송실패</span></td><td><span class="badge gray">0/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+                <tr data-status="전송실패">
+                  <td><input type="checkbox" class="rowChk" onchange="updateSel()" /></td>
+                  <td>2026-08-19 09:46:50</td><td>손*희</td><td>A형간염(HepA)</td><td>무료</td>
+                  <td>지쎄듀프리필드시린지</td><td>qwerhh</td>
+                  <td><span class="badge red">전송실패</span></td><td><span class="badge gray">0/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+                <tr data-status="미전송">
+                  <td><input type="checkbox" class="rowChk" onchange="updateSel()" /></td>
+                  <td>2026-08-19 09:40:22</td><td>김*중</td><td>인플루엔자(IIV)</td><td>유료</td>
+                  <td>박씨플루4가프리필드시린지</td><td>V60225050</td>
+                  <td><span class="badge orange">미전송</span></td><td><span class="badge gray">3/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+                <tr data-status="전송완료">
+                  <td><input type="checkbox" class="rowChk" disabled /></td>
+                  <td>2026-08-18 16:05:11</td><td>이*중</td><td>MMR</td><td>무료</td>
+                  <td>엠엠알Ⅱ주</td><td>t1234</td>
+                  <td><span class="badge green">전송완료</span></td><td><span class="badge gray">1/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+                <tr data-status="전송완료">
+                  <td><input type="checkbox" class="rowChk" disabled /></td>
+                  <td>2026-08-18 13:09:54</td><td>박*원</td><td>A형간염(HepA)</td><td>무료</td>
+                  <td>싱그릭스주(진상토신바이오로직스)</td><td>zxcv</td>
+                  <td><span class="badge green">전송완료</span></td><td><span class="badge gray">0/4</span></td><td>-</td>
+                  <td class="edit" onclick="openDetail(this)">✎</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="hint" style="margin-top:10px;">
+              전송상태로 <strong>전송실패</strong>를 필터링한 뒤 맨 앞 체크박스로 전체 선택 → [선택 전송]으로 일괄 재전송합니다.
+              전송완료 건은 PII가 파기되어 선택할 수 없습니다.
+            </div>
+            <div style="margin-top:16px;text-align:center;font-size:13px;color:var(--muted);">
+              « ‹ <strong style="color:var(--pink);">1</strong> 2 3 4 › »
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VI-07 접종내역 상세 팝업 -->
+    <div class="screen-wrap" data-id="VI-07">
+      <div class="screen-label">
+        VI-07 접종내역 상세 (팝업) — 예진의사·전송상태·재전송 (구축형 추가)
+        <span class="demo-switch">
+          목업 전환:
+          <button type="button" onclick="setSendStatus('미전송')">미전송</button>
+          <button type="button" onclick="setSendStatus('전송실패')">전송실패</button>
+          <button type="button" onclick="setSendStatus('전송완료')">전송완료</button>
+        </span>
+      </div>
+      <div class="desk">
+        <aside class="rail">
+          <div class="logo">V</div>
+          <div class="ic">👤</div><div class="ic on">📋</div><div class="ic">📊</div><div class="ic">⚙️</div>
+        </aside>
+        <div class="main">
+          <div class="topbar"><span class="org">강남소아과의원</span> · 병원 관리자 ▾</div>
+          <div class="body">
+            <h2 class="title">접종내역</h2>
+            <div class="searchbar">
+              <input class="search" placeholder="검색어를 입력해주세요. (성명은 한자로 입력해주세요)" />
+              <button class="btn btn-pink-fill">검색</button>
+            </div>
+            <div class="row-between"><div class="count">• 전체 36개</div></div>
+            <table class="grid">
+              <thead><tr><th>접종일시</th><th>성명</th><th>감염병명</th><th>유/무료</th><th>백신명</th></tr></thead>
+              <tbody>
+                <tr><td>2026-08-06 08:58:16</td><td>임*준</td><td>인플루엔자(IIV)</td><td>무료</td><td>지씨플루쿼드리밸런트…</td></tr>
+                <tr><td>2026-08-05 15:48:23</td><td>이*석</td><td>A형간염(HepA)</td><td>무료</td><td>지쎄듀프리필드시린지</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-overlay">
+          <div class="modal wide">
+            <div class="modal-head">
+              <div class="title-row">
+                <h3>접종내역 상세</h3>
+                <span class="badge red" id="sendStatusBadge">전송실패</span>
+              </div>
+              <div class="head-actions">
+                <button class="btn btn-outline btn-sm">자가체크 내역 보기</button>
+                <span class="close">✕</span>
+              </div>
+            </div>
+
+            <div class="detail-box cols-5">
+              <div><span class="dt">성명</span><span class="dd">임채준</span></div>
+              <div><span class="dt">생년월일</span><span class="dd">1968-05-05</span></div>
+              <div><span class="dt">핸드폰 번호</span><span class="dd">01098528040</span></div>
+              <div><span class="dt">기저질환</span><span class="dd">-</span></div>
+              <div><span class="dt">예진의사</span><span class="dd">이예진</span></div>
+            </div>
+
+            <div class="detail-box">
+              <div><span class="dt">제조사</span><span class="dd">(주)녹십자</span></div>
+              <div><span class="dt">백신명</span><span class="dd">지씨플루쿼드리밸런트프리필드시린지주(인플루엔자) <span class="badge green">무료</span><br/>밀리컨 0.5ml</span></div>
+              <div><span class="dt">로트번호</span><span class="dd">qwerhh</span></div>
+              <div><span class="dt">유효기간</span><span class="dd">2027-07-23</span></div>
+            </div>
+
+            <div class="detail-box cols-5">
+              <div><span class="dt">접종일시</span><span class="dd">2026-08-06 08:58:16</span></div>
+              <div><span class="dt">접종장소</span><span class="dd">메디체크병원</span></div>
+              <div><span class="dt">접종방법</span><span class="dd">근육주사</span></div>
+              <div><span class="dt">접종부위</span><span class="dd">삼각근(왼쪽)</span></div>
+              <div><span class="dt">접종용량</span><span class="dd">0.1</span></div>
+            </div>
+
+            <div id="failArea">
+              <div class="err-box" id="failReason">
+                <strong>실패 사유</strong><br/>기관 자격 오류 — 병원 프로필의 Usrid/Pwd를 확인한 뒤 재전송해 주세요. (errmsg 예시)
+              </div>
+              <div class="section">
+                <h3>재전송 이력</h3>
+                <div class="scroll-box">
+                  <table class="grid">
+                    <thead><tr><th>시각</th><th>결과</th><th>메시지</th></tr></thead>
+                    <tbody>
+                      <tr><td>10:12:08</td><td><span class="badge red">실패</span></td><td>기관 자격 오류</td></tr>
+                      <tr><td>10:12:01</td><td><span class="badge orange">시도</span></td><td>Register 호출</td></tr>
+                      <tr><td>09:58:40</td><td><span class="badge red">실패</span></td><td>필수값 누락 (예진의사)</td></tr>
+                      <tr><td>09:58:31</td><td><span class="badge orange">시도</span></td><td>Register 호출</td></tr>
+                      <tr><td>09:41:12</td><td><span class="badge red">실패</span></td><td>타임아웃</td></tr>
+                      <tr><td>09:41:02</td><td><span class="badge orange">시도</span></td><td>Register 호출</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions right">
+              <button class="btn btn-outline" id="btnCancel">취소</button>
+              <button class="btn btn-pink-fill" id="btnResend" onclick="alert('목업: 재전송 요청이 전달됩니다.');">재전송 실행</button>
+              <button class="btn btn-pink-fill" id="btnClose" style="display:none;">닫기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const ids = ["VI-04","VI-06","VI-07"];
+    const nav = document.getElementById("nav");
+    ids.forEach((id, i) => {
+      const b = document.createElement("button");
+      b.textContent = id;
+      b.onclick = () => go(id);
+      if (i === 0) b.classList.add("active");
+      nav.appendChild(b);
+    });
+
+    function go(id) {
+      document.querySelectorAll(".screen-wrap").forEach(el => {
+        el.style.outline = el.dataset.id === id ? "3px solid #d6006e" : "none";
+        el.style.outlineOffset = "4px";
+      });
+      document.querySelectorAll("#nav button").forEach(b => {
+        b.classList.toggle("active", b.textContent === id);
+      });
+      const target = document.querySelector(`[data-id="${id}"]`);
+      if (target) target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+
+    function gridRows() {
+      return Array.from(document.querySelectorAll("#vacGrid tbody tr"));
+    }
+    function visibleRows() {
+      return gridRows().filter(tr => tr.style.display !== "none");
+    }
+
+    function filterRows() {
+      const want = document.getElementById("statusFilter").value;
+      gridRows().forEach(tr => {
+        const show = want === "all" || tr.dataset.status === want;
+        tr.style.display = show ? "" : "none";
+        if (!show) {
+          const chk = tr.querySelector(".rowChk");
+          if (chk) chk.checked = false;
+        }
+      });
+      document.getElementById("rowCount").textContent = visibleRows().length;
+      document.getElementById("chkAll").checked = false;
+      updateSel();
+    }
+
+    function toggleAll() {
+      const on = document.getElementById("chkAll").checked;
+      visibleRows().forEach(tr => {
+        const chk = tr.querySelector(".rowChk");
+        if (chk && !chk.disabled) chk.checked = on;
+      });
+      updateSel();
+    }
+
+    function updateSel() {
+      const selected = visibleRows().filter(tr => {
+        const chk = tr.querySelector(".rowChk");
+        return chk && !chk.disabled && chk.checked;
+      });
+      const btn = document.getElementById("sendAllBtn");
+      const label = document.getElementById("selCount");
+      if (label) label.textContent = selected.length;
+      if (btn) btn.disabled = selected.length === 0;
+    }
+
+    function sendAll() {
+      const n = document.getElementById("selCount").textContent;
+      alert(`목업: 선택한 ${n}건을 질병청으로 일괄 재전송합니다.`);
+    }
+
+    // VI-07 전송상태에 따른 하단 영역·버튼 노출
+    function setSendStatus(status) {
+      const badge = document.getElementById("sendStatusBadge");
+      const failArea = document.getElementById("failArea");
+      const failReason = document.getElementById("failReason");
+      const btnCancel = document.getElementById("btnCancel");
+      const btnResend = document.getElementById("btnResend");
+      const btnClose = document.getElementById("btnClose");
+
+      const tone = { "미전송": "orange", "전송실패": "red", "전송완료": "blue" }[status];
+      badge.textContent = status;
+      badge.className = "badge " + tone;
+
+      const done = status === "전송완료";
+      failArea.style.display = done ? "none" : "block";
+      failReason.style.display = status === "전송실패" ? "block" : "none";
+
+      btnCancel.style.display = done ? "none" : "inline-flex";
+      btnResend.style.display = done ? "none" : "inline-flex";
+      btnClose.style.display = done ? "inline-flex" : "none";
+    }
+    setSendStatus("전송실패");
+
+    function openDetail(cell) {
+      const tr = cell.closest("tr");
+      setSendStatus(tr.dataset.status || "전송실패");
+      go("VI-07");
+    }
+
+    go("VI-04");
+  </script>
+</body>
+</html>

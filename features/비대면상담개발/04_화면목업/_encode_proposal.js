@@ -1,0 +1,10 @@
+const fs = require("fs");
+const path = require("path");
+const mainPath = path.join(__dirname, "RTMC_원격진료_자체서비스_목업.html");
+const decodedPath = path.join(__dirname, "_proposal_decoded.html");
+const html = fs.readFileSync(decodedPath, "utf8");
+const b64 = Buffer.from(html, "utf8").toString("base64");
+let main = fs.readFileSync(mainPath, "utf8");
+main = main.replace(/const PATIENT_PROPOSAL_BASE64="[^"]+"/, `const PATIENT_PROPOSAL_BASE64="${b64}"`);
+fs.writeFileSync(mainPath, main, "utf8");
+console.log("Encoded", html.length, "bytes -> base64", b64.length, "chars");

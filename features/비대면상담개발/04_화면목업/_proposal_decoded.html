@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>유저웹 · 비대면 상담 메뉴 제안 목업</title>
+  <style>
+    :root {
+      --blue: #2f7fe8;
+      --blue-dark: #1f63c4;
+      --blue-soft: #eaf3fd;
+      --blue-line: #c7ddf7;
+      --bg: #eef1f5;
+      --phone-bg: #f3f5f8;
+      --card: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --label: #9ca3af;
+      --line: #e5e7eb;
+      --ok: #059669;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: linear-gradient(180deg, #dce8f6 0%, var(--bg) 40%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button { font: inherit; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+    .hero {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 28px;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+    .hero h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 560px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--blue-line);
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .tab {
+      border: 1px solid var(--blue-line);
+      background: #fff;
+      color: var(--blue-dark);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .tab.on {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .board { grid-template-columns: 1fr; }
+    }
+
+    .phones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+    }
+    .phone-wrap { width: 360px; }
+    .phone-caption {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue-dark);
+      text-align: center;
+    }
+    .phone {
+      position: relative;
+      width: 360px;
+      height: 740px;
+      border: 8px solid #1f2430;
+      border-radius: 34px;
+      background: var(--phone-bg);
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(31, 36, 48, 0.18);
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 120px; height: 18px;
+      background: #1f2430;
+      border-radius: 0 0 12px 12px;
+      z-index: 5;
+    }
+    .screen {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+      background: var(--phone-bg);
+    }
+    .screen.on { display: flex; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 28px 14px 12px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .topbar .title {
+      flex: 1;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border: 0; background: transparent;
+      color: #374151;
+      font-size: 20px;
+      line-height: 1;
+      border-radius: 8px;
+    }
+    .scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 14px 14px 24px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .qr-card {
+      background: #fff;
+      border: 2px solid var(--blue);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .qr-top {
+      padding: 16px 14px 12px;
+      text-align: center;
+      border-bottom: 1px dashed var(--blue-line);
+    }
+    .qr-top h2 { font-size: 15px; margin-bottom: 4px; }
+    .qr-top p { font-size: 11px; color: var(--muted); }
+    .qr-box {
+      width: 148px; height: 148px;
+      margin: 14px auto 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, #111 2px, transparent 2px) 0 0 / 12px 12px,
+        linear-gradient(#111 2px, transparent 2px) 0 0 / 12px 12px,
+        #fff;
+      opacity: 0.85;
+    }
+    .qr-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px 14px;
+    }
+    .avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #93c5fd, #3b82f6);
+    }
+    .qr-user b { font-size: 14px; }
+    .chip {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .meta { margin-top: 4px; font-size: 11px; color: var(--muted); }
+
+    .status-card {
+      margin-bottom: 14px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--blue-line);
+      box-shadow: 0 1px 0 rgba(47, 127, 232, 0.06);
+    }
+    .status-card .row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .status-card h3 { font-size: 14px; margin-bottom: 4px; }
+    .status-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .st {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .st-req { background: #eff6ff; color: #1d4ed8; }
+    .st-await { background: #fff7ed; color: #c2410c; }
+    .st-ok { background: #ecfdf5; color: #047857; }
+    .st-ing { background: #fef2f2; color: #b91c1c; }
+    .st-done { background: #f3f4f6; color: #4b5563; }
+    .st-miss { background: #fef3c7; color: #92400e; }
+    .st-cancel { background: #f3f4f6; color: #6b7280; }
+    .status-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .status-actions.one { grid-template-columns: 1fr; }
+    .btn {
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:active { background: var(--blue-dark); }
+    .btn-ghost {
+      background: #fff;
+      border-color: var(--blue-line);
+      color: var(--blue-dark);
+    }
+    .btn-danger {
+      background: #fff;
+      border-color: #fecaca;
+      color: var(--danger);
+    }
+    .btn-block { width: 100%; height: 46px; font-size: 14px; }
+
+    .sec-title {
+      margin: 4px 0 10px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.4;
+    }
+    .sec-sub { margin: -4px 0 12px; font-size: 12px; color: var(--muted); }
+
+    .vax-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+    .vax-thumb {
+      width: 56px; height: 56px;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #dbeafe, #93c5fd);
+      flex-shrink: 0;
+    }
+    .vax-item b { display: block; font-size: 13px; }
+    .vax-item span { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .vax-item em {
+      margin-left: auto;
+      font-style: normal;
+      font-size: 11px;
+      color: var(--blue);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .banner {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(120deg, #3b82f6, #60a5fa);
+      color: #fff;
+    }
+    .banner b { display: block; font-size: 13px; }
+    .banner span { display: block; margin-top: 4px; font-size: 11px; opacity: 0.92; }
+
+    /* drawer */
+    .dim {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      z-index: 20;
+    }
+    .dim.on { display: block; }
+    .drawer {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 78%;
+      max-width: 280px;
+      background: #fff;
+      z-index: 21;
+      transform: translateX(105%);
+      transition: transform .22s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -8px 0 24px rgba(0,0,0,.12);
+    }
+    .drawer.on { transform: translateX(0); }
+    .drawer-head {
+      padding: 36px 18px 18px;
+      background: var(--blue-soft);
+      border-bottom: 1px solid var(--blue-line);
+    }
+    .drawer-head .hi { font-size: 12px; color: var(--muted); }
+    .drawer-head b { display: block; margin-top: 4px; font-size: 18px; }
+    .drawer-head p { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .drawer-list { padding: 8px 0; flex: 1; }
+    .drawer-item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border: 0;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+    }
+    .drawer-item:hover, .drawer-item:focus { background: var(--blue-soft); }
+    .drawer-item.accent { color: var(--blue-dark); }
+    .drawer-item .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--blue);
+    }
+    .drawer-foot {
+      padding: 8px 0 16px;
+      border-top: 1px solid var(--line);
+    }
+    .drawer-foot .drawer-item {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .drawer-foot .drawer-logout {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* hub — 자가체크 결과 주정보 · 접종정보 부정보 */
+    .hub-intro { margin-bottom: 16px; }
+    .hub-intro h2 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .hub-intro p {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+    .hub-sec {
+      margin: 18px 0 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .hub-list { display: flex; flex-direction: column; gap: 10px; }
+    .scroll > .hub-card { margin-bottom: 14px; }
+    .home-status-ctrl {
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px dashed var(--blue);
+      box-shadow: 0 1px 4px rgba(47, 127, 232, 0.08);
+    }
+    .home-status-ctrl.on { display: flex; }
+    .home-status-ctrl label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--blue-dark);
+    }
+    .home-status-ctrl select {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      padding: 0 10px;
+    }
+    .home-status-panel { margin-bottom: 14px; }
+    .home-status-panel .m-cta { margin-top: 0; }
+    /* 자가체크 결과: r-card 직후 CTA — 기존 .m-cta margin-top(10px)과 동일 */
+    .r-card + .home-status-panel { margin-top: 10px; }
+    .home-status-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--blue);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--blue);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .home-status-btn:active { background: var(--blue-soft); }
+    .home-status-btn .lead {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .home-status-btn .lead svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .home-status-btn .msg {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1.4;
+    }
+    .home-status-btn .chev {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--blue);
+    }
+    .home-status-btn .chev svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .home-status-btn.is-ing {
+      animation: status-blink 1.6s ease-in-out infinite;
+    }
+    @keyframes status-blink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(47, 127, 232, 0.28); }
+      50% { opacity: 0.78; box-shadow: 0 0 0 5px rgba(47, 127, 232, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .home-status-btn.is-ing { animation: none; }
+    }
+    .hub-card {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 16px 14px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+      cursor: pointer;
+    }
+    .hub-card.active {
+      background: #fff;
+      border-color: var(--line);
+    }
+    .hub-card:active { background: #fafbfc; }
+    .hub-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .hub-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .hub-card-title::before {
+      content: "";
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--blue);
+      flex-shrink: 0;
+    }
+    .hub-card-title b {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+    .hub-staff {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px 8px;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .hub-staff .doc {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+    .hub-staff .org {
+      font-size: 13px;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+    .hub-when {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .hub-sx {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .hub-sx .sx {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+    .hub-sx .sx .name { color: #374151; }
+    .hub-sx .sx .n { color: #6b7280; font-weight: 700; }
+    .hub-sx .more {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .hub-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 12px 12px;
+      min-height: 56px;
+      border-radius: 10px;
+      background: #eef5ff;
+    }
+    .hub-status-bar .msg {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue-dark);
+      line-height: 1.4;
+    }
+    .hub-status-bar .acts {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .hub-status-bar .acts .btn {
+      height: 32px;
+      width: 72px;
+      padding: 0;
+      font-size: 12px;
+      background: #fff;
+    }
+    .hub-status-bar .acts .btn.btn-room {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .detail-footer .btn-room {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .hub-status-bar.done {
+      background: #f3f4f6;
+    }
+    .hub-status-bar.done .msg {
+      color: #6b7280;
+      font-weight: 600;
+    }
+    .hub-status-bar .chev {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .hub-link {
+      border: 0;
+      background: none;
+      padding: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--blue);
+      white-space: nowrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-await,
+    .badge-ok,
+    .badge-ing { background: var(--blue); color: #fff; }
+    .badge-done { background: #f3f4f6; color: #4b5563; }
+    .badge-miss { background: #f3f4f6; color: #4b5563; }
+    .badge-cancel { background: #f3f4f6; color: #4b5563; }
+    .empty-hint {
+      padding: 18px 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px dashed var(--line);
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .notice {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+    .notice a, .notice .linkish {
+      color: var(--blue-dark);
+      font-weight: 700;
+      border: 0;
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* result — 자가체크 결과와 동일 구조 */
+    .r-head { margin-bottom: 12px; }
+    .r-head h2 { font-size: 16px; color: var(--text); line-height: 1.4; letter-spacing: -.02em; }
+    .r-head p { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .r-card { padding: 14px; border-radius: 12px; background: #fff; border: 1px solid var(--line); }
+    .r-vax { margin-bottom: 12px; font-size: 12px; font-weight: 600; color: var(--text); }
+    .r-sym { margin-top: 14px; }
+    .r-sym-name {
+      display: flex; justify-content: space-between; gap: 8px;
+      font-size: 13px; font-weight: 700; color: var(--text);
+    }
+    .r-sym-name em { font-style: normal; font-size: 11px; color: #c45c4a; font-weight: 600; }
+    .r-sym-name em.ok { color: var(--muted); }
+    .r-track {
+      position: relative; height: 10px; margin: 12px 0 6px; border-radius: 8px;
+      background: linear-gradient(90deg, #d9e6ff, #3d6bff);
+    }
+    .r-track i {
+      position: absolute; top: -5px; width: 18px; height: 18px; margin-left: -9px;
+      border-radius: 50%; background: #3d6bff; box-shadow: 0 0 0 3px #fff;
+    }
+    .r-track-lab { display: flex; justify-content: space-between; font-size: 10px; color: var(--label); }
+    .r-tip {
+      margin-top: 12px; padding: 10px; border-radius: 8px;
+      background: #f6f6f8; color: var(--muted); font-size: 11px; line-height: 1.6;
+    }
+    .m-cta { margin-top: 10px; }
+    .m-cta .btn { width: 100%; height: 46px; font-size: 14px; font-weight: 700; }
+    .m-ai-banner {
+      display: block; width: 100%; margin-top: 10px; padding: 12px 14px;
+      border: 1px solid #d7e4f4; border-radius: 12px; background: #f5f9fd;
+      text-align: left; color: #2b5c8a;
+    }
+    .m-ai-banner b { display: block; font-size: 13px; }
+    .m-ai-banner span { display: block; margin-top: 4px; font-size: 11px; color: #4a7eb3; }
+    .r-sec {
+      margin-top: 12px; padding: 14px; border-radius: 12px;
+      background: #fff; border: 1px solid var(--line);
+    }
+    .r-sec h3 { font-size: 14px; color: var(--text); }
+    .r-sec > p { margin: 6px 0 10px; font-size: 11px; color: var(--muted); line-height: 1.55; }
+    .r-round { padding: 10px 0; border-top: 1px solid var(--line); }
+    .r-round:first-of-type { border-top: 0; padding-top: 0; }
+    .r-round-h {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; font-weight: 700;
+    }
+    .r-round-h span { font-size: 11px; font-weight: 400; color: var(--label); }
+    .r-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; font-size: 12px; }
+    .r-row b { width: 72px; color: var(--text); flex-shrink: 0; }
+    .r-row > span { color: var(--muted); font-size: 11px; }
+    .r-dots { display: flex; gap: 4px; }
+    .r-dots i { width: 10px; height: 10px; border-radius: 50%; background: #e8e8ee; }
+    .r-dots i.on { background: #e03131; }
+    .r-wait {
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      color: var(--label); font-size: 12px;
+    }
+    .r-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .r-table th {
+      padding: 8px 0; color: var(--label); font-weight: 600;
+      text-align: left; border-bottom: 1px solid var(--line);
+    }
+    .r-table td { padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .m-note {
+      margin-top: 12px; padding: 13px; border-radius: 10px;
+      background: #f0f7f6; color: #37665e; font-size: 11px; line-height: 1.7;
+    }
+    .gate-hint {
+      margin-top: 8px; font-size: 10px; color: var(--label); line-height: 1.5; text-align: center;
+    }
+
+    /* 자체 비대면 상담 신청 */
+    .screen[data-screen="doctor"] {
+      --provider-card-h: 72px;
+    }
+    .screen[data-screen="doctor"] {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .screen[data-screen="doctor"] .doctor-layout {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 14px 14px 0;
+      overflow: hidden;
+    }
+    .screen[data-screen="doctor"] .booking-intro {
+      flex-shrink: 0;
+      margin-bottom: 12px;
+    }
+    .screen[data-screen="doctor"] .provider-list-wrap {
+      flex: 0 0 auto;
+      max-height: calc(var(--provider-card-h) * 3 + 10px * 2);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 12px;
+    }
+    .screen[data-screen="doctor"] .doctor-foot {
+      flex-shrink: 0;
+      padding-bottom: 12px;
+    }
+    .screen[data-screen="doctor"] .booking-footer {
+      flex-shrink: 0;
+    }
+    .booking-window {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--blue-line);
+      background: var(--blue-soft);
+    }
+    .booking-window-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+    .booking-window-main {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+      color: var(--text);
+    }
+    .booking-window-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+    .booking-window.is-expired {
+      border-color: #fcd34d;
+      background: #fffbeb;
+    }
+    .booking-window.is-expired .booking-window-label {
+      color: #b45309;
+    }
+    .booking-closed-hero {
+      text-align: center;
+      padding: 20px 8px 16px;
+    }
+    .booking-closed-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #fef3c7;
+      color: #d97706;
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .booking-closed-hero h2 {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .booking-closed-hero p {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--muted);
+      white-space: pre-line;
+    }
+    .booking-check-guide {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .booking-check-guide-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .booking-check-guide-lines {
+      margin-top: 8px;
+      font-size: 11px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+    .booking-intro {
+      margin-bottom: 14px;
+    }
+    .booking-intro h2 {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .booking-intro p {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+    .provider-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .provider-card {
+      display: flex;
+      width: 100%;
+      min-height: var(--provider-card-h, 72px);
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: inherit;
+      text-align: left;
+      box-sizing: border-box;
+    }
+    .provider-card:active:not(.selected) { background: #f9fafb; }
+    .provider-card.selected {
+      border-color: #93c5fd;
+      background: #f8fbff;
+    }
+    .provider-card.selected .provider-info b { color: var(--text); }
+    .provider-card.selected .provider-avatar {
+      background: var(--blue);
+      color: #fff;
+    }
+    .provider-avatar {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .provider-info { min-width: 0; flex: 1; }
+    .provider-info b {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .provider-info span {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .schedule-selected-provider {
+      margin-bottom: 14px;
+      cursor: default;
+    }
+    .booking-section {
+      margin-bottom: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .booking-section h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .booking-section p {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .date-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .date-option {
+      min-height: 58px;
+      padding: 7px 4px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .date-option span {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 500;
+    }
+    .date-option.selected,
+    .time-option.selected {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+    .date-option:disabled,
+    .time-option:disabled {
+      cursor: not-allowed;
+      background: #f7f7f8;
+      color: #c2c5ca;
+    }
+    .time-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .time-option {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .booking-footer {
+      flex-shrink: 0;
+      padding: 12px 14px 16px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 -4px 16px rgba(17, 24, 39, .06);
+    }
+    .booking-footer .btn { width: 100%; height: 46px; }
+    .booking-footer .btn:disabled {
+      cursor: not-allowed;
+      background: #e5e7eb;
+      color: #9ca3af;
+    }
+
+    /* side panel notes */
+    .notes {
+      background: #fff;
+      border: 1px solid var(--blue-line);
+      border-radius: 16px;
+      padding: 18px 16px;
+      position: sticky;
+      top: 16px;
+    }
+    .notes h2 {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+    .notes ol {
+      padding-left: 18px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .notes li { margin-bottom: 8px; }
+    .notes li strong { color: var(--text); }
+    .notes .callout {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--blue-soft);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--blue-dark);
+    }
+    .hub-card.past {
+      cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .hub-card.past:hover,
+    .hub-card.past:focus {
+      border-color: var(--blue-line);
+      box-shadow: 0 2px 10px rgba(47, 127, 232, .1);
+      outline: none;
+    }
+
+    /* detail */
+    .detail-block-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .detail-block-top h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .detail-block {
+      margin-bottom: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .detail-block > h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .detail-kv {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 8px 12px;
+      font-size: 13px;
+    }
+    .detail-kv dt { color: var(--muted); }
+    .detail-kv dd { color: var(--text); font-weight: 600; }
+    .detail-kv dd.detail-status-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0 4px;
+    }
+    .detail-status-sep,
+    .detail-status-at {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .detail-status-at { white-space: nowrap; }
+    .detail-status-sep[hidden],
+    .detail-status-at:empty { display: none; }
+    .detail-block .hub-sx { margin-top: 10px; }
+    .detail-actions { display: grid; gap: 8px; margin-top: 4px; }
+    .detail-actions:empty { display: none; }
+    .detail-footer {
+      flex-shrink: 0;
+      display: grid;
+      gap: 8px;
+      padding: 12px 16px 16px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -4px 16px rgba(17, 24, 39, 0.06);
+    }
+    .detail-footer:empty { display: none; }
+    .detail-footer .btn { width: 100%; height: 46px; font-size: 14px; }
+    .detail-check {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+    .detail-check:active { background: #fafbfc; }
+    .detail-check-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .detail-check-top h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .detail-check .chev {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .detail-check-vax {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 8px 12px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .detail-check-vax dt {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .detail-check-vax dd {
+      color: var(--text);
+      font-weight: 600;
+      word-break: keep-all;
+    }
+    .detail-check .r-round {
+      padding: 0;
+      border-top: 0;
+    }
+    .detail-check .r-round + .r-round {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .detail-check .r-row {
+      gap: 12px;
+    }
+    .detail-check .r-row b {
+      width: 72px;
+    }
+    .detail-check .r-round-h {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 4px;
+    }
+    .detail-check .r-round-h .round-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .detail-check .r-round-h .round-meta {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--label);
+      white-space: nowrap;
+    }
+    .detail-check .r-wait {
+      margin-top: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--label);
+      font-size: 12px;
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      background: #111827;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      z-index: 100;
+      max-width: 90vw;
+    }
+    .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .confirm-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      background: rgba(17, 24, 39, 0.45);
+    }
+    .confirm-layer.on { display: flex; }
+    .confirm-sheet {
+      width: 100%;
+      max-width: 300px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 18px 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    }
+    .confirm-sheet h3 {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .confirm-sheet p {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+      text-align: center;
+      white-space: pre-line;
+    }
+    .confirm-sheet .confirm-slot {
+      margin-top: 14px;
+      padding: 11px 10px;
+      border-radius: 10px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+      text-align: center;
+    }
+    .confirm-sheet .confirm-tip {
+      margin-top: 10px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--label);
+      text-align: center;
+    }
+    .confirm-sheet [hidden] { display: none; }
+    .confirm-acts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .confirm-acts.single { grid-template-columns: 1fr; }
+    .confirm-acts .btn { height: 44px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div>
+        <span class="badge">유저웹 제안 목업 · 자체 개발</span>
+        <h1>비대면 상담 메뉴 · 화면 제안</h1>
+        <p>
+          실제 유저웹(안심QR 홈 · 햄버거 메뉴) 구조에 맞춰,
+          신청 CTA · 홈 상태 카드 · 햄버거 허브를 한 흐름으로 제안합니다.
+          예약부터 화상 상담까지 자체 비대면 상담 서비스에서 진행됩니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="화면 시나리오">
+      <button type="button" class="tab on" data-scene="home">1. 홈 + 상태카드</button>
+      <button type="button" class="tab" data-scene="menu">2. 햄버거 메뉴</button>
+      <button type="button" class="tab" data-scene="hub">3. 비대면 상담 허브</button>
+      <button type="button" class="tab" data-scene="detail">4. 상담 상세</button>
+      <button type="button" class="tab" data-scene="result">5. 자가체크 결과 CTA</button>
+    </div>
+
+    <div class="board">
+      <div class="phones">
+        <div class="phone-wrap">
+          <div class="phone-caption" id="caption">홈 · 진행 중 상담 상태 카드</div>
+          <div class="phone" id="phone">
+            <div class="phone-notch"></div>
+
+            <!-- 1 HOME -->
+            <div class="screen on" data-screen="home">
+              <div class="topbar">
+                <span style="width:36px"></span>
+                <div class="title">안심예방접종 통합서비스</div>
+                <button type="button" class="icon-btn" data-open-menu aria-label="메뉴 열기">☰</button>
+              </div>
+              <div class="scroll">
+                <div class="qr-card">
+                  <div class="qr-top">
+                    <h2>임재준님의 안심QR</h2>
+                    <p>접종 전 의료진에게 보여주세요.</p>
+                    <div class="qr-box" aria-hidden="true"></div>
+                  </div>
+                  <div class="qr-user">
+                    <div class="avatar" aria-hidden="true"></div>
+                    <div>
+                      <b>임재준 <span class="chip">본인</span></b>
+                      <div class="meta">남자 · 1993-03-05</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="home-status-panel" id="home-status-panel"></div>
+
+                <h2 class="sec-title">내가 맞은 안심 백신,<br />내가 직접 확인 해요!</h2>
+                <p class="sec-sub">안심예방접종 내역을 확인해보세요</p>
+                <div class="vax-item">
+                  <div class="vax-thumb"></div>
+                  <div>
+                    <b>인플루엔자(IIV)</b>
+                    <span>2026-08-27 21:59</span>
+                  </div>
+                  <em>상세보기 ›</em>
+                </div>
+                <div class="vax-item">
+                  <div class="vax-thumb"></div>
+                  <div>
+                    <b>인플루엔자(IIV)</b>
+                    <span>2026-08-18 10:40</span>
+                  </div>
+                  <em>상세보기 ›</em>
+                </div>
+
+                <h2 class="sec-title" style="margin-top:18px">안심예방접종 서비스 안내</h2>
+                <button type="button" class="banner" data-go="result">
+                  <b>접종 후 이상반응 확인하기!</b>
+                  <span>이상반응 헬스케어 · 결과에서 상담 신청</span>
+                </button>
+                <button type="button" class="banner" style="background:linear-gradient(120deg,#2563eb,#38bdf8)">
+                  <b>예방접종 이후 주의사항 바로알기!</b>
+                  <span>접종 후 주의사항을 확인하세요</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2 MENU overlay on home duplicate -->
+            <div class="screen" data-screen="menu">
+              <div class="topbar">
+                <span style="width:36px"></span>
+                <div class="title">안심예방접종 통합서비스</div>
+                <button type="button" class="icon-btn" data-open-menu aria-label="메뉴">☰</button>
+              </div>
+              <div class="scroll" style="filter:brightness(.92)">
+                <div class="qr-card">
+                  <div class="qr-top">
+                    <h2>임재준님의 안심QR</h2>
+                    <p>접종 전 의료진에게 보여주세요.</p>
+                    <div class="qr-box"></div>
+                  </div>
+                </div>
+                <article class="hub-card active">
+                  <div class="hub-card-top">
+                    <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                    <span class="badge badge-await">예약대기</span>
+                  </div>
+                  <div class="hub-status-bar">
+                    <span class="msg">진행 중 건이 있습니다.</span>
+                    <span class="chev">상세보기 ›</span>
+                  </div>
+                </article>
+              </div>
+              <div class="dim on" data-close-menu></div>
+              <aside class="drawer on" aria-label="사이드 메뉴">
+                <div class="drawer-head">
+                  <div class="hi">안녕하세요,</div>
+                  <b>임재준님</b>
+                  <p>오늘도 건강한 하루 되세요!</p>
+                </div>
+                <div class="drawer-list">
+                  <button type="button" class="drawer-item">마이 페이지</button>
+                  <button type="button" class="drawer-item">우리 가족 QR코드 관리</button>
+                  <button type="button" class="drawer-item">AI 유사성 분석(forStage)</button>
+                  <button type="button" class="drawer-item accent" data-go="hub">
+                    <span class="dot"></span>비대면 상담
+                  </button>
+                </div>
+                <div class="drawer-foot">
+                  <button type="button" class="drawer-item">언어 선택</button>
+                  <button type="button" class="drawer-item drawer-logout">로그아웃</button>
+                </div>
+              </aside>
+            </div>
+
+            <!-- 3 HUB — 자가체크 결과 주 · 접종정보 부 -->
+            <div class="screen" data-screen="hub">
+              <div class="topbar">
+                <button type="button" class="icon-btn" data-go="home" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">비대면 상담</div>
+                <button type="button" class="icon-btn" data-go="menu" aria-label="메뉴 열기">☰</button>
+              </div>
+              <div class="scroll">
+                <div class="hub-intro">
+                  <h2>비대면 상담 이력</h2>
+                  <p>진행한 비대면 상담 이력을 확인할 수 있습니다.</p>
+                </div>
+
+                <div class="hub-sec">진행 중</div>
+                <div class="hub-list">
+                  <article class="hub-card active" data-detail="await" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                      <span class="badge badge-await">예약대기</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">2026.09.18 (금) 14:00</span>
+                    <div class="hub-status-bar">
+                      <span class="msg">일정 확정 대기 중입니다.</span>
+                      <div class="acts">
+                        <button type="button" class="btn btn-danger" data-confirm="cancel">취소</button>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article class="hub-card active" data-detail="confirmed" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                      <span class="badge badge-ok">예약확정</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">2026.09.18 (금) 14:00</span>
+                    <div class="hub-status-bar">
+                      <span class="msg">예약이 확정되었습니다.</span>
+                      <span class="chev">상세보기 ›</span>
+                    </div>
+                  </article>
+
+                  <article class="hub-card active" data-detail="ing" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                      <span class="badge badge-ing">상담중</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">오늘 17:00</span>
+                    <div class="hub-status-bar">
+                      <span class="msg">비대면 상담이 진행 중입니다.</span>
+                      <div class="acts">
+                        <button type="button" class="btn btn-room" data-confirm="room">상담실</button>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="hub-sec">지난 상담</div>
+                <div class="hub-list">
+                  <article class="hub-card past" data-detail="done" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                      <span class="badge badge-done">상담완료</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">이상담</span>
+                      <span class="org">강원대학교병원</span>
+                    </div>
+                    <span class="hub-when">2026.08.20 (목) 14:30</span>
+                    <div class="hub-status-bar done">
+                      <span class="msg">상담이 종료되었습니다.</span>
+                      <span class="chev">상세보기 ›</span>
+                    </div>
+                  </article>
+
+                  <article class="hub-card past" data-detail="miss" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임서준 (가족)</b></div>
+                      <span class="badge badge-miss">불참</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">2026.07.02 (목) 11:00</span>
+                    <div class="hub-status-bar done">
+                      <span class="msg">예약 시간에 미접속했습니다.</span>
+                      <span class="chev">상세보기 ›</span>
+                    </div>
+                  </article>
+
+                  <article class="hub-card past" data-detail="cancel" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임재준 (본인)</b></div>
+                      <span class="badge badge-cancel">접종자 취소</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">2026.05.10 (일) 14:00</span>
+                    <div class="hub-status-bar done">
+                      <span class="msg">접종자가 예약을 취소했습니다.</span>
+                      <span class="chev">상세보기 ›</span>
+                    </div>
+                  </article>
+
+                  <article class="hub-card past" data-detail="cancelStaff" tabindex="0" role="button">
+                    <div class="hub-card-top">
+                      <div class="hub-card-title"><b>임서준 (가족)</b></div>
+                      <span class="badge badge-cancel">의료진 취소</span>
+                    </div>
+                    <div class="hub-staff">
+                      <span class="doc">김의료</span>
+                      <span class="org">원주의료원</span>
+                    </div>
+                    <span class="hub-when">2026.04.22 (수) 10:30</span>
+                    <div class="hub-status-bar done">
+                      <span class="msg">의료진이 예약을 취소했습니다.</span>
+                      <span class="chev">상세보기 ›</span>
+                    </div>
+                  </article>
+                </div>
+
+                <div class="notice">
+                  비대면 상담은 자가체크 결과를 기준으로 진행됩니다.
+                  진단·처방이 아니며, 응급 시 119 또는 가까운 의료기관을 이용해 주세요.
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 DETAIL — 상태별 상담 상세 -->
+            <div class="screen" data-screen="detail">
+              <div class="topbar">
+                <button type="button" class="icon-btn" data-go="hub" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">비대면 상담 상세</div>
+                <span style="width:36px"></span>
+              </div>
+              <div class="scroll">
+                <div class="detail-block">
+                  <div class="detail-block-top">
+                    <h3>상담 정보</h3>
+                    <span class="badge" id="d-badge">상담완료</span>
+                  </div>
+                  <div class="hub-staff" style="margin-bottom:12px">
+                    <span class="doc" id="d-doc">이상담</span>
+                    <span class="org" id="d-org">강원대학교병원</span>
+                  </div>
+                  <dl class="detail-kv">
+                    <dt>접종자</dt><dd id="d-patient">임재준 (본인)</dd>
+                    <dt id="d-when-label">상담 일시</dt><dd id="d-when-full">2026.08.20 (목) 14:30</dd>
+                    <dt>진행 경로</dt><dd>접종자 신청</dd>
+                    <dt>상태</dt>
+                    <dd class="detail-status-row">
+                      <span id="d-status-text">상담완료</span>
+                      <span class="detail-status-sep" id="d-status-sep" hidden aria-hidden="true">·</span>
+                      <small class="detail-status-at" id="d-status-at"></small>
+                    </dd>
+                  </dl>
+                  <p class="gate-hint" id="d-hint" hidden></p>
+                </div>
+
+                <button type="button" class="detail-check" data-go="result" data-from-detail="1">
+                  <div class="detail-check-top">
+                    <h3>연결된 자가체크</h3>
+                    <span class="chev">상세보기 ›</span>
+                  </div>
+                  <dl class="detail-check-vax">
+                    <dt>접종일시</dt><dd id="d-vax-date">2026-09-15 16:51:07</dd>
+                    <dt>접종장소</dt><dd id="d-vax-place">원주의료원</dd>
+                    <dt>접종제품</dt><dd id="d-vax-product">인플루엔자(IIV) [테라플루엔스에스주]</dd>
+                  </dl>
+                  <div id="d-check-summary"></div>
+                </button>
+              </div>
+              <div class="detail-footer" id="d-actions"></div>
+            </div>
+
+            <!-- 5 RESULT — v3 자가체크 결과 동일 구성 -->
+            <div class="screen" data-screen="result">
+              <div class="topbar">
+                <button type="button" class="icon-btn" id="result-back" data-go="home" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">자가체크 결과</div>
+                <span style="width:36px"></span>
+              </div>
+              <div class="scroll">
+                <div class="r-head">
+                  <h2>임재준님 1차 자가체크 결과</h2>
+                  <p>임재준 · 원주의료원 · 인플루엔자(IIV)</p>
+                </div>
+
+                <div class="r-card">
+                  <p class="r-vax">인플루엔자(IIV) [테라플루엔스에스주]</p>
+                  <div class="r-sym">
+                    <div class="r-sym-name">숨참<em>전체 평균보다 높습니다</em></div>
+                    <div class="r-track"><i style="left:80%"></i></div>
+                    <div class="r-track-lab"><span>0</span><span>임재준 [4]</span><span>5</span></div>
+                  </div>
+                  <div class="r-sym">
+                    <div class="r-sym-name">두근거림<em>전체 평균보다 높습니다</em></div>
+                    <div class="r-track"><i style="left:60%"></i></div>
+                    <div class="r-track-lab"><span>0</span><span>임재준 [3]</span><span>5</span></div>
+                  </div>
+                  <p class="r-tip">예방 접종 후 2–3일간 고열 등 평소와 다른 증상이 심하게 지속된다면 상담을 받으세요.</p>
+                </div>
+
+                <!-- 홈과 동일 · 상태별 CTA -->
+                <div class="home-status-panel" id="result-status-panel"></div>
+
+                <button type="button" class="m-ai-banner" data-toast="목업: 이상반응 헬스케어 서비스로 이동합니다.">
+                  <b>최근 분석한 AI 리포트가 있어요</b>
+                  <span>이상반응 헬스케어 서비스 보기</span>
+                </button>
+
+                <div class="r-sec">
+                  <h3>접종 후 경과</h3>
+                  <p>접종 후 3시간, 48시간, 72시간 간격으로 확인합니다.</p>
+                  <div class="r-round">
+                    <div class="r-round-h">1차<span>응답 완료</span></div>
+                    <div class="r-row">
+                      <b>숨참</b>
+                      <span class="r-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+                      <span>많이 아픔</span>
+                    </div>
+                    <div class="r-row">
+                      <b>두근거림</b>
+                      <span class="r-dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+                      <span>아픔</span>
+                    </div>
+                  </div>
+                  <div class="r-wait" style="margin-top:8px">2차 · 자가체크 진행전</div>
+                  <div class="r-wait" style="margin-top:8px">3차 · 자가체크 진행전</div>
+                  <div class="r-wait" style="margin-top:8px">4차 · 자가체크 진행전</div>
+                </div>
+
+                <div class="r-sec">
+                  <h3>나의 기저질환</h3>
+                  <p>자가체크에서 응답한 결과 기준입니다.</p>
+                  <table class="r-table">
+                    <thead><tr><th>질환 분류</th><th>보유 기간</th></tr></thead>
+                    <tbody><tr><td>고혈압</td><td>1년</td></tr></tbody>
+                  </table>
+                </div>
+
+                <div class="m-note">응급 증상(호흡곤란·의식 저하 등)이 있으면 비대면 상담을 기다리지 말고 119 또는 응급실에 연락해 주세요.</div>
+              </div>
+            </div>
+
+            <!-- 6 DOCTOR — 자체 서비스 의료진 선택 -->
+            <div class="screen" data-screen="doctor">
+              <div class="topbar">
+                <button type="button" class="icon-btn" data-go="result" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">의료진 선택</div>
+                <span style="width:36px"></span>
+              </div>
+              <div class="doctor-layout">
+                <div class="booking-intro">
+                  <h2>상담받을 의료진을 선택해 주세요</h2>
+                  <p>의료진을 선택한 뒤 하단 다음을 누르면 신청 가능한 일자·시간을 확인할 수 있습니다.</p>
+                </div>
+                <div class="provider-list-wrap">
+                  <div class="provider-list" id="provider-list"></div>
+                </div>
+                <div class="doctor-foot">
+                  <div class="booking-window" id="booking-window">
+                    <p class="booking-window-label">신청 가능 기간</p>
+                    <p class="booking-window-main" id="booking-window-main"></p>
+                    <p class="booking-window-sub" id="booking-window-sub"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="booking-footer">
+                <button type="button" class="btn btn-primary" id="doctor-next" disabled>다음</button>
+              </div>
+            </div>
+
+            <!-- 6-2 BOOKING CLOSED — 상담 신청 기간 만료 -->
+            <div class="screen" data-screen="booking-closed">
+              <div class="topbar">
+                <button type="button" class="icon-btn" data-go="result" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">비대면 상담 신청</div>
+                <span style="width:36px"></span>
+              </div>
+              <div class="scroll">
+                <div class="booking-closed-hero">
+                  <div class="booking-closed-icon" aria-hidden="true">!</div>
+                  <h2>상담 신청 기간이 지났습니다</h2>
+                  <p id="booking-closed-desc"></p>
+                </div>
+                <div class="booking-window is-expired" id="booking-closed-window">
+                  <p class="booking-window-label">신청 가능 기간</p>
+                  <p class="booking-window-main" id="booking-closed-window-main"></p>
+                  <p class="booking-window-sub" id="booking-closed-window-sub"></p>
+                </div>
+              </div>
+              <div class="booking-footer">
+                <button type="button" class="btn btn-primary" data-go="result">자가체크 결과로</button>
+              </div>
+            </div>
+
+            <!-- 7 SCHEDULE — 선택 의료진 가능 일정 -->
+            <div class="screen" data-screen="schedule">
+              <div class="topbar">
+                <button type="button" class="icon-btn" data-go="doctor" aria-label="뒤로">‹</button>
+                <div class="title" style="color:var(--text)">상담 일정 선택</div>
+                <span style="width:36px"></span>
+              </div>
+              <div class="scroll">
+                <div class="provider-card selected schedule-selected-provider" aria-label="선택된 의료진">
+                  <span class="provider-avatar" id="selected-provider-avatar">김</span>
+                  <span class="provider-info"><b id="selected-provider-name">김의료</b><span id="selected-provider-meta">가정의학과 · 원주의료원</span></span>
+                </div>
+                <div class="booking-section">
+                  <h3>가능한 일자</h3>
+                  <p>상담을 원하는 날짜를 선택해 주세요.</p>
+                  <div class="date-options" id="date-options"></div>
+                </div>
+                <div class="booking-section">
+                  <h3>가능한 시간</h3>
+                  <p id="time-guide">일자를 먼저 선택해 주세요.</p>
+                  <div class="time-options" id="time-options"></div>
+                </div>
+              </div>
+              <div class="booking-footer">
+                <button type="button" class="btn btn-primary" id="booking-submit" disabled>비대면 상담 신청하기</button>
+              </div>
+            </div>
+
+            <div class="confirm-layer" id="confirm-layer" aria-hidden="true">
+              <div class="confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+                <h3 id="confirm-title">확인</h3>
+                <p id="confirm-desc"></p>
+                <div class="confirm-slot" id="confirm-slot" hidden></div>
+                <p class="confirm-tip" id="confirm-tip" hidden></p>
+                <div class="confirm-acts">
+                  <button type="button" class="btn btn-ghost" id="confirm-cancel">아니오</button>
+                  <button type="button" class="btn btn-primary" id="confirm-ok">확인</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <aside class="notes">
+        <div class="home-status-ctrl on" id="home-status-ctrl">
+          <label for="home-status">상태 (목업)</label>
+          <select id="home-status">
+            <option value="apply">자가체크 완료 · 미신청</option>
+            <option value="await">예약대기</option>
+            <option value="confirmed">예약확정</option>
+            <option value="ing">상담중</option>
+          </select>
+        </div>
+        <div class="home-status-ctrl" id="doctor-round-ctrl">
+          <label for="doctor-booking-mode">신청 가능 (목업)</label>
+          <select id="doctor-booking-mode">
+            <option value="open">신청 가능</option>
+            <option value="closed">기간 만료</option>
+          </select>
+          <label for="doctor-check-round">완료 자가체크 (목업)</label>
+          <select id="doctor-check-round">
+            <option value="1">1차 완료</option>
+            <option value="2">2차 완료</option>
+            <option value="3">3차 완료</option>
+            <option value="4">4차 완료</option>
+          </select>
+        </div>
+        <h2>이 시나리오에서 제안하는 것</h2>
+        <ol>
+          <li><strong>홈 상태 영역</strong> — 상태 선택 시 하단 액션 버튼만 전환(미신청 CTA / 예약대기·확정·상담중 상태바 → 상세).</li>
+          <li><strong>햄버거 「비대면 상담」</strong> — AI 유사성 분석 아래 · 언어 선택은 로그아웃 바로 위.</li>
+          <li><strong>허브</strong> — 카드 탭 → 상태별 상세. 취소·상담실만 카드 내 별도 버튼.</li>
+          <li><strong>상담 상세</strong> — 연결된 자가체크는 해당 상담과 연계된 차수 1건만 노출(1~4차 가능). 예약대기는 취소, 상담중은 상담실 하단 고정.</li>
+          <li><strong>자가체크 결과</strong> — v3와 동일 구성. 체크 완료·해당없음일 때 「비대면 상담 신청하기」.</li>
+          <li><strong>신청</strong> — 의료진 선택 후 해당 의료진의 가능한 일자·시간을 선택해 자체 서비스에서 예약.</li>
+          <li><strong>상담실</strong> — 상담중 카드·상세에서만 자체 비대면 상담실에 접속.</li>
+        </ol>
+        <div class="callout">
+          탭을 눌러 화면을 전환해 보세요.
+          버튼은 실제 API 대신 안내 토스트만 띄웁니다.
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (function () {
+      var captions = {
+        home: "홈 · 진행 중 상담 상태 카드",
+        menu: "햄버거 메뉴 · 「비대면 상담」 추가",
+        hub: "허브 · 카드 탭 → 상태별 상세",
+        detail: "비대면 상담 상세 · 상태 분기",
+        result: "자가체크 결과 · 신청 CTA",
+        doctor: "자체 서비스 · 의료진 선택",
+        "booking-closed": "상담 신청 기간 만료 · 신청 가능 기간 안내",
+        schedule: "자체 서비스 · 상담 일정 선택"
+      };
+
+      var providers = {
+        kim: {
+          name: "김의료",
+          meta: "가정의학과 · 원주의료원",
+          dates: [
+            { value: "2026-09-18", day: "금", label: "9월 18일", times: ["14:00", "15:30", "17:00"] },
+            { value: "2026-09-19", day: "토", label: "9월 19일", times: ["10:00", "11:30"] },
+            { value: "2026-09-21", day: "월", label: "9월 21일", times: ["09:30", "14:00", "16:30"] }
+          ]
+        },
+        lee: {
+          name: "이상담",
+          meta: "내과 · 강원대학교병원",
+          dates: [
+            { value: "2026-09-18", day: "금", label: "9월 18일", times: ["13:00", "16:00"] },
+            { value: "2026-09-22", day: "화", label: "9월 22일", times: ["10:30", "15:00", "17:30"] },
+            { value: "2026-09-23", day: "수", label: "9월 23일", times: ["09:00", "11:00"] }
+          ]
+        },
+        park: {
+          name: "박진료",
+          meta: "가정의학과 · 춘천의료원",
+          dates: [
+            { value: "2026-09-19", day: "토", label: "9월 19일", times: ["09:30", "13:30"] },
+            { value: "2026-09-21", day: "월", label: "9월 21일", times: ["11:00", "14:30", "18:00"] },
+            { value: "2026-09-24", day: "목", label: "9월 24일", times: ["10:00", "16:00"] }
+          ]
+        },
+        choi: {
+          name: "최건강",
+          meta: "내과 · 원주의료원",
+          dates: [
+            { value: "2026-09-18", day: "금", label: "9월 18일", times: ["11:00", "15:00"] },
+            { value: "2026-09-20", day: "일", label: "9월 20일", times: ["10:00", "14:00"] }
+          ]
+        },
+        jung: {
+          name: "정케어",
+          meta: "가정의학과 · 강릉의료원",
+          dates: [
+            { value: "2026-09-19", day: "토", label: "9월 19일", times: ["09:00", "13:00", "17:00"] },
+            { value: "2026-09-22", day: "화", label: "9월 22일", times: ["14:00"] }
+          ]
+        },
+        han: {
+          name: "한담당",
+          meta: "내과 · 춘천의료원",
+          dates: [
+            { value: "2026-09-21", day: "월", label: "9월 21일", times: ["10:30", "16:00"] },
+            { value: "2026-09-23", day: "수", label: "9월 23일", times: ["11:30", "15:30"] }
+          ]
+        }
+      };
+      var selectedProviderKey = "";
+      var selectedDate = "";
+      var selectedTime = "";
+      var mockVaxAt = new Date("2026-09-15T16:51:07");
+      var completedCheckRound = 1;
+      var bookingMode = "open";
+      var mockSelfCheckAtByRound = {
+        1: new Date("2026-09-17T20:40:00"),
+        2: new Date("2026-09-18T09:12:00"),
+        3: new Date("2026-09-18T15:05:00"),
+        4: new Date("2026-08-21T09:15:00")
+      };
+      var checkRoundWindows = [
+        { round: 1, start: 3, end: 48 },
+        { round: 2, start: 48, end: 72 },
+        { round: 3, start: 72, end: 168 },
+        { round: 4, start: 168, end: null }
+      ];
+
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function formatDateTimeKo(d) {
+        var wd = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()];
+        return d.getFullYear() + "." + pad2(d.getMonth() + 1) + "." + pad2(d.getDate()) +
+          " (" + wd + ") " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      }
+
+      function addHoursFromVax(hours) {
+        return new Date(mockVaxAt.getTime() + hours * 3600000);
+      }
+
+      function consultDeadlineHour(completed) {
+        if (completed < 1 || completed >= 4) return null;
+        return checkRoundWindows[completed].end;
+      }
+
+      function syncDoctorNextButton() {
+        var btn = document.getElementById("doctor-next");
+        if (btn) btn.disabled = !selectedProviderKey;
+      }
+
+      function renderProviderList() {
+        var list = document.getElementById("provider-list");
+        if (!list) return;
+        list.innerHTML = Object.keys(providers).map(function (key) {
+          var p = providers[key];
+          var isSelected = selectedProviderKey === key;
+          var selected = isSelected ? " selected" : "";
+          return (
+            '<button type="button" class="provider-card' + selected + '" data-provider="' + key + '"' +
+            (isSelected ? ' aria-pressed="true"' : "") + ">" +
+            '<span class="provider-avatar">' + p.name[0] + "</span>" +
+            '<span class="provider-info"><b>' + p.name + "</b><span>" + p.meta + "</span></span>" +
+            "</button>"
+          );
+        }).join("");
+        syncDoctorNextButton();
+      }
+
+      function selectProvider(key) {
+        if (!providers[key]) return;
+        selectedProviderKey = key;
+        renderProviderList();
+      }
+
+      function getBookingWindowCopy(completed, expired) {
+        var deadlineHour = consultDeadlineHour(completed);
+        var nextRound = completed < 4 ? completed + 1 : null;
+        var checkAt = mockSelfCheckAtByRound[completed];
+        var checkPrefix = checkAt ? formatDateTimeKo(checkAt) + " 응답 · " : "";
+
+        if (deadlineHour) {
+          var deadlineStr = formatDateTimeKo(addHoursFromVax(deadlineHour));
+          return {
+            main: expired ? deadlineStr + "에 신청 마감" : deadlineStr + "까지 신청 가능",
+            sub: completed + "차 자가체크 · " + checkPrefix + nextRound +
+              "차 자가체크 종료(접종 후 " + deadlineHour + "시간) 전까지 비대면 상담을 신청할 수 있습니다."
+          };
+        }
+        return {
+          main: expired ? "신청 불가" : "신청 가능 · 기한 없음",
+          sub: completed + "차 자가체크 · " + checkPrefix +
+            "168시간 이후(4차) 구간에서는 종료 시한 없이 비대면 상담을 신청할 수 있습니다."
+        };
+      }
+
+      function fillBookingWindow(mainEl, subEl, completed, expired) {
+        if (!mainEl || !subEl) return;
+        var copy = getBookingWindowCopy(completed, expired);
+        mainEl.textContent = copy.main;
+        subEl.textContent = copy.sub;
+      }
+
+      function renderBookingWindow() {
+        fillBookingWindow(
+          document.getElementById("booking-window-main"),
+          document.getElementById("booking-window-sub"),
+          completedCheckRound,
+          false
+        );
+      }
+
+      function renderBookingClosed() {
+        var desc = document.getElementById("booking-closed-desc");
+        if (desc) {
+          var nextRound = completedCheckRound < 4 ? completedCheckRound + 1 : null;
+          desc.textContent = nextRound
+            ? "지금은 신청할 수 없습니다.\n" + nextRound + "차 자가체크를 완료하면 다시 신청할 수 있습니다."
+            : "현재 비대면 상담을 신청할 수 있는 기간이 아닙니다.\n자가체크를 완료한 뒤 안내를 확인해 주세요.";
+        }
+        fillBookingWindow(
+          document.getElementById("booking-closed-window-main"),
+          document.getElementById("booking-closed-window-sub"),
+          completedCheckRound,
+          true
+        );
+      }
+
+      function goDoctorFlow() {
+        if (bookingMode === "closed") {
+          renderBookingClosed();
+          showScreen("booking-closed");
+          return;
+        }
+        selectedProviderKey = "";
+        selectedDate = "";
+        selectedTime = "";
+        renderProviderList();
+        renderBookingWindow();
+        showScreen("doctor");
+      }
+
+      var details = {
+        await: {
+          badgeClass: "badge-await",
+          badge: "예약대기",
+          statusAt: "2026.09.18 10:22",
+          whenShort: "26.09.18 14:00",
+          whenLabel: "희망 일시",
+          whenFull: "2026.09.18 (금) 14:00",
+          patient: "임재준 (본인)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "의료진이 일정을 확정하면 예약확정으로 변경됩니다.",
+          vaxDate: "2026-09-15 16:51:07",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "1차 자가체크",
+              meta: "2026.09.17 20:40 응답",
+              rows: [
+                { name: "숨참", n: 4, label: "많이 아픔" },
+                { name: "두근거림", n: 3, label: "아픔" }
+              ]
+            }
+          ],
+          actions: [
+            { label: "예약 취소", confirm: "cancel", danger: true }
+          ]
+        },
+        confirmed: {
+          badgeClass: "badge-ok",
+          badge: "예약확정",
+          statusAt: "2026.09.18 12:45",
+          whenShort: "26.09.18 14:00",
+          whenLabel: "상담 일시",
+          whenFull: "2026.09.18 (금) 14:00",
+          patient: "임재준 (본인)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "예약 당일·상담 시작 시각이 되면 상담중으로 전환되며 상담실에 접속할 수 있습니다.",
+          vaxDate: "2026-09-15 16:51:07",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "2차 자가체크",
+              meta: "2026.09.18 09:12 응답",
+              rows: [
+                { name: "숨참", n: 3, label: "아픔" },
+                { name: "피로", n: 2, label: "조금 아픔" }
+              ]
+            }
+          ],
+          actions: []
+        },
+        ing: {
+          badgeClass: "badge-ing",
+          badge: "상담중",
+          statusAt: "2026.09.18 17:00",
+          whenShort: "오늘 17:00",
+          whenLabel: "상담 일시",
+          whenFull: "오늘 17:00",
+          patient: "임재준 (본인)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "상담이 진행 중입니다. 상담실에서 비대면 상담을 이어갈 수 있습니다.",
+          vaxDate: "2026-09-15 16:51:07",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "3차 자가체크",
+              meta: "2026.09.18 15:05 응답",
+              rows: [
+                { name: "숨참", n: 2, label: "조금 아픔" },
+                { name: "두근거림", n: 2, label: "조금 아픔" }
+              ]
+            }
+          ],
+          actions: [
+            { label: "상담실", confirm: "room", room: true }
+          ]
+        },
+        done: {
+          badgeClass: "badge-done",
+          badge: "상담완료",
+          statusAt: "2026.08.20 15:02",
+          whenShort: "26.08.20 14:30",
+          whenLabel: "상담 일시",
+          whenFull: "2026.08.20 (목) 14:30",
+          patient: "임재준 (본인)",
+          doc: "이상담",
+          org: "강원대학교병원",
+          hint: "",
+          vaxDate: "2026-08-18 14:22:31",
+          vaxPlace: "강원대학교병원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "4차 자가체크",
+              meta: "2026.08.21 09:15 응답",
+              rows: [
+                { name: "피로", n: 1, label: "거의 없음" },
+                { name: "가려움", n: 1, label: "거의 없음" }
+              ]
+            }
+          ],
+          actions: []
+        },
+        miss: {
+          badgeClass: "badge-miss",
+          badge: "불참",
+          statusAt: "2026.07.02 11:30",
+          whenShort: "26.07.02 11:00",
+          whenLabel: "상담 일시",
+          whenFull: "2026.07.02 (목) 11:00",
+          patient: "임서준 (가족)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "예약 시간에 미접속하여 불참으로 처리되었습니다.",
+          vaxDate: "2026-06-30 11:05:44",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "2차 자가체크",
+              meta: "2026.07.02 08:40 응답",
+              rows: [
+                { name: "가려움", n: 2, label: "조금 아픔" },
+                { name: "피로", n: 2, label: "조금 아픔" }
+              ]
+            }
+          ],
+          actions: []
+        },
+        cancel: {
+          badgeClass: "badge-cancel",
+          badge: "접종자 취소",
+          statusAt: "2026.05.10 09:15",
+          whenShort: "26.05.10 14:00",
+          whenLabel: "상담 일시",
+          whenFull: "2026.05.10 (일) 14:00",
+          patient: "임재준 (본인)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "접종자가 예약을 취소했습니다.",
+          vaxDate: "2026-05-08 09:18:02",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "1차 자가체크",
+              meta: "2026.05.09 18:22 응답",
+              rows: [
+                { name: "주사부위통증", n: 2, label: "조금 아픔" },
+                { name: "피로", n: 2, label: "조금 아픔" }
+              ]
+            }
+          ],
+          actions: []
+        },
+        cancelStaff: {
+          badgeClass: "badge-cancel",
+          badge: "의료진 취소",
+          statusAt: "2026.04.22 09:00",
+          whenShort: "26.04.22 10:30",
+          whenLabel: "상담 일시",
+          whenFull: "2026.04.22 (수) 10:30",
+          patient: "임서준 (가족)",
+          doc: "김의료",
+          org: "원주의료원",
+          hint: "의료진이 예약을 취소했습니다.",
+          vaxDate: "2026-04-20 11:05:18",
+          vaxPlace: "원주의료원",
+          vaxProduct: "인플루엔자(IIV) [테라플루엔스에스주]",
+          checkRounds: [
+            {
+              title: "1차 자가체크",
+              meta: "2026.04.21 09:40 응답",
+              rows: [
+                { name: "주사부위통증", n: 3, label: "아픔" },
+                { name: "발열", n: 2, label: "조금 아픔" }
+              ]
+            }
+          ],
+          actions: []
+        }
+      };
+
+      function showScreen(id) {
+        document.querySelectorAll(".screen").forEach(function (el) {
+          el.classList.toggle("on", el.getAttribute("data-screen") === id);
+        });
+        document.querySelectorAll(".tab").forEach(function (el) {
+          el.classList.toggle("on", el.getAttribute("data-scene") === id);
+        });
+        var cap = document.getElementById("caption");
+        if (cap) cap.textContent = captions[id] || "";
+        var homeCtrl = document.getElementById("home-status-ctrl");
+        if (homeCtrl) homeCtrl.classList.toggle("on", id === "home");
+        var doctorCtrl = document.getElementById("doctor-round-ctrl");
+        if (doctorCtrl) {
+          doctorCtrl.classList.toggle("on", id === "doctor" || id === "schedule" || id === "booking-closed");
+        }
+        if (id === "doctor" || id === "schedule") renderBookingWindow();
+        if (id === "booking-closed") renderBookingClosed();
+      }
+
+      function toast(msg) {
+        var el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("on");
+        clearTimeout(toast._t);
+        toast._t = setTimeout(function () { el.classList.remove("on"); }, 2200);
+      }
+
+      function notifyParentConsultPrep() {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "rtmc-patient-consult-prep" }, "*");
+          return true;
+        }
+        return false;
+      }
+
+      var confirmKinds = {
+        cancel: {
+          title: "예약을 취소하시겠습니까?",
+          desc: "선택한 일정의 비대면 상담 예약이 취소됩니다.",
+          tip: "취소 후에도 최근 자가체크가 있으면 다시 신청할 수 있습니다.",
+          showSlot: true,
+          okLabel: "취소하기",
+          cancelLabel: "아니오",
+          okDanger: false,
+          done: "예약이 취소되었습니다. (목업)"
+        },
+        room: {
+          title: "상담실로 이동할까요?",
+          desc: "비대면 상담실로 이동합니다.\n이용 동의 및 기기 권한을 허용해 주세요.",
+          okLabel: "이동하기",
+          cancelLabel: "닫기",
+          okDanger: false,
+          done: "자체 비대면 상담실로 이동합니다. (목업)"
+        },
+        booked: {
+          title: "비대면 상담 신청 완료",
+          desc: "선택한 일정으로 비대면 상담을 신청했습니다.",
+          tip: "상담 일정이 확정되면 접속정보가 메시지로 발송됩니다.",
+          showSlot: true,
+          single: true,
+          okLabel: "확인",
+          okDanger: false
+        }
+      };
+      var confirmPending = null;
+
+      function formatSlotLabel(text) {
+        var raw = String(text || "").trim();
+        var m = raw.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})\s*(.*)$/);
+        if (!m) return raw;
+        var rest = m[4] ? " " + m[4] : "";
+        return m[1] + "년 " + Number(m[2]) + "월 " + Number(m[3]) + "일" + rest;
+      }
+
+      function confirmSlotText(trigger) {
+        var card = trigger && trigger.closest("[data-detail]");
+        var when = card
+          ? card.querySelector(".hub-when")
+          : document.getElementById("d-when-full");
+        return when ? formatSlotLabel(when.textContent) : "";
+      }
+
+      function openConfirm(kind, slotText) {
+        var cfg = confirmKinds[kind];
+        if (!cfg) return;
+        confirmPending = kind;
+        document.getElementById("confirm-title").textContent = cfg.title;
+        document.getElementById("confirm-desc").textContent = cfg.desc;
+        var slot = document.getElementById("confirm-slot");
+        var slotValue = cfg.showSlot ? slotText || "" : "";
+        slot.textContent = slotValue;
+        slot.hidden = !slotValue;
+        var tip = document.getElementById("confirm-tip");
+        tip.textContent = cfg.tip || "";
+        tip.hidden = !cfg.tip;
+        var ok = document.getElementById("confirm-ok");
+        ok.textContent = cfg.okLabel;
+        ok.className = "btn " + (cfg.okDanger ? "btn-danger" : "btn-primary");
+        var cancel = document.getElementById("confirm-cancel");
+        cancel.textContent = cfg.cancelLabel || "아니오";
+        cancel.hidden = !!cfg.single;
+        cancel.parentElement.classList.toggle("single", !!cfg.single);
+        var layer = document.getElementById("confirm-layer");
+        layer.classList.add("on");
+        layer.setAttribute("aria-hidden", "false");
+      }
+
+      function closeConfirm() {
+        confirmPending = null;
+        var layer = document.getElementById("confirm-layer");
+        layer.classList.remove("on");
+        layer.setAttribute("aria-hidden", "true");
+      }
+
+      function renderSx(list) {
+        return (list || []).map(function (item) {
+          if (item.more) return '<span class="more">' + item.more + "</span>";
+          return '<span class="sx"><span class="name">' + item.name + '</span><span class="n">' + item.n + "</span></span>";
+        }).join("");
+      }
+
+      function renderDots(n) {
+        var html = "";
+        for (var i = 1; i <= 5; i++) {
+          html += i <= n ? '<i class="on"></i>' : "<i></i>";
+        }
+        return '<span class="r-dots">' + html + "</span>";
+      }
+
+      function renderCheckRows(rows) {
+        return (rows || []).map(function (row) {
+          return (
+            '<div class="r-row"><b>' +
+            row.name +
+            "</b>" +
+            renderDots(row.n) +
+            "<span>" +
+            row.label +
+            "</span></div>"
+          );
+        }).join("");
+      }
+
+      function renderCheckRounds(rounds) {
+        return (rounds || []).map(function (round) {
+          if (round.pending) {
+            return (
+              '<div class="r-round">' +
+              '<div class="r-wait">' + round.title + " · " + round.pending + "</div>" +
+              "</div>"
+            );
+          }
+          return (
+            '<div class="r-round">' +
+            '<div class="r-round-h">' +
+            '<span class="round-title">' + round.title + "</span>" +
+            '<span class="round-meta">' + round.meta + "</span>" +
+            "</div>" +
+            renderCheckRows(round.rows) +
+            "</div>"
+          );
+        }).join("");
+      }
+
+      function renderActions(actions) {
+        return (actions || []).map(function (a) {
+          var cls = "btn btn-block";
+          if (a.room) cls += " btn-room";
+          else if (a.primary) cls += " btn-primary";
+          else if (a.danger) cls += " btn-danger";
+          else if (a.ghost) cls += " btn-ghost";
+          var attrs = 'type="button" class="' + cls + '"';
+          if (a.go) attrs += ' data-go="' + a.go + '"';
+          if (a.confirm) attrs += ' data-confirm="' + a.confirm + '"';
+          if (a.toast) attrs += ' data-toast="' + a.toast + '"';
+          return "<button " + attrs + ">" + a.label + "</button>";
+        }).join("");
+      }
+
+      function openDetail(key) {
+        var d = details[key] || details.done;
+        var badge = document.getElementById("d-badge");
+        badge.className = "badge " + d.badgeClass;
+        badge.textContent = d.badge;
+        document.getElementById("d-doc").textContent = d.doc;
+        document.getElementById("d-org").textContent = d.org;
+        document.getElementById("d-patient").textContent = d.patient;
+        document.getElementById("d-when-label").textContent = d.whenLabel;
+        document.getElementById("d-when-full").textContent = d.whenFull;
+        document.getElementById("d-status-text").textContent = d.badge;
+        var statusAt = d.statusAt || "";
+        document.getElementById("d-status-at").textContent = statusAt;
+        document.getElementById("d-status-sep").hidden = !statusAt;
+        var hint = document.getElementById("d-hint");
+        if (d.hint) {
+          hint.hidden = false;
+          hint.textContent = d.hint;
+        } else {
+          hint.hidden = true;
+          hint.textContent = "";
+        }
+        document.getElementById("d-vax-date").textContent = d.vaxDate;
+        document.getElementById("d-vax-place").textContent = d.vaxPlace;
+        document.getElementById("d-vax-product").textContent = d.vaxProduct;
+        document.getElementById("d-check-summary").innerHTML = renderCheckRounds(d.checkRounds);
+        document.getElementById("d-actions").innerHTML = renderActions(d.actions);
+        showScreen("detail");
+      }
+
+      function teleStatusHtml(key) {
+        var chev =
+          '<span class="chev" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>' +
+          "</span>";
+        var icons = {
+          await:
+            '<span class="lead" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg></span>',
+          confirmed:
+            '<span class="lead" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="8.5 12.5 11 15 16 9.5"></polyline></svg></span>',
+          ing:
+            '<span class="lead" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.5-3v10L15 14"></path><rect x="3.5" y="7" width="11.5" height="10" rx="2"></rect></svg></span>'
+        };
+        var map = {
+          apply:
+            '<div class="m-cta">' +
+            '<button type="button" class="btn btn-primary" data-go="doctor">비대면 상담 신청하기</button>' +
+            "</div>",
+          await:
+            '<button type="button" class="home-status-btn is-await" data-detail="await">' +
+            icons.await +
+            '<span class="msg">비대면 상담 예약 확정 대기 중입니다.</span>' +
+            chev +
+            "</button>",
+          confirmed:
+            '<button type="button" class="home-status-btn is-confirmed" data-detail="confirmed">' +
+            icons.confirmed +
+            '<span class="msg">비대면 상담 예약이 확정되었습니다.</span>' +
+            chev +
+            "</button>",
+          ing:
+            '<button type="button" class="home-status-btn is-ing" data-detail="ing">' +
+            icons.ing +
+            '<span class="msg">비대면 상담이 진행 중입니다.</span>' +
+            chev +
+            "</button>"
+        };
+        return map[key] || map.apply;
+      }
+
+      function renderTeleStatus(key) {
+        var html = teleStatusHtml(key);
+        var homePanel = document.getElementById("home-status-panel");
+        var resultPanel = document.getElementById("result-status-panel");
+        if (homePanel) homePanel.innerHTML = html;
+        if (resultPanel) resultPanel.innerHTML = html;
+      }
+
+      function renderSchedule() {
+        var provider = providers[selectedProviderKey];
+        if (!provider) return;
+        document.getElementById("selected-provider-avatar").textContent = provider.name.charAt(0);
+        document.getElementById("selected-provider-name").textContent = provider.name;
+        document.getElementById("selected-provider-meta").textContent = provider.meta;
+
+        document.getElementById("date-options").innerHTML = provider.dates.map(function (date) {
+          return (
+            '<button type="button" class="date-option' +
+            (selectedDate === date.value ? " selected" : "") +
+            '" data-book-date="' + date.value + '">' +
+            "<span>" + date.day + "요일</span>" + date.label +
+            "</button>"
+          );
+        }).join("");
+
+        var date = provider.dates.find(function (item) { return item.value === selectedDate; });
+        var guide = document.getElementById("time-guide");
+        var timeBox = document.getElementById("time-options");
+        if (!date) {
+          guide.textContent = "일자를 먼저 선택해 주세요.";
+          timeBox.innerHTML = "";
+        } else {
+          guide.textContent = date.label + "에 가능한 시간입니다.";
+          timeBox.innerHTML = date.times.map(function (time) {
+            return (
+              '<button type="button" class="time-option' +
+              (selectedTime === time ? " selected" : "") +
+              '" data-book-time="' + time + '">' + time + "</button>"
+            );
+          }).join("");
+        }
+        document.getElementById("booking-submit").disabled = !(selectedDate && selectedTime);
+      }
+
+      function openProviderSchedule(key) {
+        if (!providers[key]) return;
+        selectedProviderKey = key;
+        selectedDate = "";
+        selectedTime = "";
+        renderSchedule();
+        showScreen("schedule");
+      }
+
+      function formatBookedSlot() {
+        var provider = providers[selectedProviderKey];
+        if (!provider) return "";
+        var date = provider.dates.find(function (item) { return item.value === selectedDate; });
+        var parts = selectedDate.split("-");
+        if (parts.length !== 3) return selectedDate + " " + selectedTime;
+        return parts[0] + "년 " + Number(parts[1]) + "월 " + Number(parts[2]) + "일 (" +
+          (date ? date.day : "") + ") " + selectedTime;
+      }
+
+      function completeBooking() {
+        var provider = providers[selectedProviderKey];
+        if (!provider || !selectedDate || !selectedTime) return;
+        var status = document.getElementById("home-status");
+        if (status) status.value = "await";
+        renderTeleStatus("await");
+        openConfirm("booked", formatBookedSlot());
+      }
+
+      var homeStatus = document.getElementById("home-status");
+      if (homeStatus) {
+        renderTeleStatus(homeStatus.value);
+        homeStatus.addEventListener("change", function () {
+          renderTeleStatus(homeStatus.value);
+        });
+      }
+
+      var doctorBookingMode = document.getElementById("doctor-booking-mode");
+      if (doctorBookingMode) {
+        doctorBookingMode.value = bookingMode;
+        doctorBookingMode.addEventListener("change", function () {
+          bookingMode = doctorBookingMode.value || "open";
+        });
+      }
+
+      var doctorCheckRound = document.getElementById("doctor-check-round");
+      if (doctorCheckRound) {
+        doctorCheckRound.value = String(completedCheckRound);
+        doctorCheckRound.addEventListener("change", function () {
+          completedCheckRound = Number(doctorCheckRound.value) || 1;
+          renderBookingWindow();
+          renderBookingClosed();
+        });
+      }
+      renderProviderList();
+      renderBookingWindow();
+
+      document.querySelectorAll(".tab").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var scene = btn.getAttribute("data-scene");
+          if (scene === "detail") {
+            openDetail("done");
+            return;
+          }
+          showScreen(scene);
+        });
+      });
+
+      document.getElementById("confirm-cancel").addEventListener("click", closeConfirm);
+      document.getElementById("confirm-ok").addEventListener("click", function () {
+        var kind = confirmPending;
+        var cfg = confirmKinds[kind];
+        closeConfirm();
+        if (kind === "booked") {
+          showScreen("hub");
+          return;
+        }
+        if (kind === "room") {
+          if (!notifyParentConsultPrep() && cfg && cfg.done) toast(cfg.done);
+          return;
+        }
+        if (cfg && cfg.done) toast(cfg.done);
+      });
+      document.getElementById("confirm-layer").addEventListener("click", function (e) {
+        if (e.target === this) closeConfirm();
+      });
+
+      document.getElementById("phone").addEventListener("click", function (e) {
+        var providerBtn = e.target.closest("[data-provider]");
+        if (providerBtn) {
+          e.preventDefault();
+          selectProvider(providerBtn.getAttribute("data-provider"));
+          return;
+        }
+        var doctorNextBtn = e.target.closest("#doctor-next");
+        if (doctorNextBtn) {
+          e.preventDefault();
+          if (doctorNextBtn.disabled || !selectedProviderKey) return;
+          openProviderSchedule(selectedProviderKey);
+          return;
+        }
+        var dateBtn = e.target.closest("[data-book-date]");
+        if (dateBtn) {
+          selectedDate = dateBtn.getAttribute("data-book-date");
+          selectedTime = "";
+          renderSchedule();
+          return;
+        }
+        var timeBtn = e.target.closest("[data-book-time]");
+        if (timeBtn) {
+          selectedTime = timeBtn.getAttribute("data-book-time");
+          renderSchedule();
+          return;
+        }
+        if (e.target.closest("#booking-submit")) {
+          completeBooking();
+          return;
+        }
+        var confirmBtn = e.target.closest("[data-confirm]");
+        if (confirmBtn) {
+          e.stopPropagation();
+          openConfirm(
+            confirmBtn.getAttribute("data-confirm"),
+            confirmSlotText(confirmBtn)
+          );
+          return;
+        }
+        var act = e.target.closest("[data-toast]");
+        if (act) {
+          e.stopPropagation();
+          toast(act.getAttribute("data-toast"));
+          return;
+        }
+        var detailCard = e.target.closest("[data-detail]");
+        if (detailCard) {
+          openDetail(detailCard.getAttribute("data-detail"));
+          return;
+        }
+        var t = e.target.closest("[data-go]");
+        if (t) {
+          var goId = t.getAttribute("data-go");
+          var back = document.getElementById("result-back");
+          if (goId === "result" && t.hasAttribute("data-from-detail") && back) {
+            back.setAttribute("data-go", "detail");
+          } else if (goId !== "detail" && back) {
+            back.setAttribute("data-go", "home");
+          }
+          if (goId === "doctor") {
+            goDoctorFlow();
+            return;
+          }
+          showScreen(goId);
+          return;
+        }
+        if (e.target.closest("[data-open-menu]")) {
+          showScreen("menu");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
